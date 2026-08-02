@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mein Alltags-Planer</title>
+  
+  <!-- App Icon (Favicon & Apple Touch Icon für iOS) -->
+  <link rel="icon" type="image/png" href="https://aqownulwmwdtrgzmsgqn.supabase.co/storage/v1/object/public/bench-images/icon.png">
+  <link rel="apple-touch-icon" href="https://aqownulwmwdtrgzmsgqn.supabase.co/storage/v1/object/public/bench-images/icon.png">
+
+  <!-- PWA Settings für iOS & Android -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Alltags-Planer">
+  <meta name="theme-color" content="#2e7d32">
+
+  <!-- Web App Manifest (Inline) -->
+  <link rel="manifest" href='data:application/json,{"name":"Mein Alltags-Planer","short_name":"Planer","start_url":".","display":"standalone","background_color":"#f4f6f8","theme_color":"#2e7d32","icons":[{"src":"https://aqownulwmwdtrgzmsgqn.supabase.co/storage/v1/object/public/bench-images/icon.png","sizes":"300x300","type":"image/png","purpose":"any maskable"}]}'>
+
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg-color: #f4f6f8;
+      --card-bg: #ffffff;
+      --text-color: #333333;
+      --primary: #2e7d32;
+      --primary-hover: #1b5e20;
+      --border: #e0e0e0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Header mit Logo-Icon */
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .header-title img {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    h1 {
+      margin: 0;
+      color: #1a252f;
+      font-size: 1.5rem;
+    }
+
+    /* Formular zum Anlegen */
+    .add-form {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr 1.2fr 1fr 1fr auto;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    input, select, button {
+      padding: 9px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+    }
+
+    button.btn-add {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    button.btn-add:hover {
+      background-color: var(--primary-hover);
+    }
+
+    /* Filter-Leiste */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .filter-btn {
+      background: #eef2f5;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Tabelle */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    th {
+      font-weight: 600;
+      color: #777;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+
+    .note-input, .date-table-input {
+      width: 95%;
+      padding: 5px 6px;
+      font-size: 0.85rem;
+      border: 1px solid transparent;
+      background: #f9f9f9;
+      border-radius: 4px;
+      color: #555;
+    }
+
+    .note-input:hover, .note-input:focus,
+    .date-table-input:hover, .date-table-input:focus {
+      border-color: var(--border);
+      background: #fff;
+    }
+
+    .created-date {
+      font-size: 0.8rem;
+      color: #888;
+    }
+
+    .badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+
+    .prio-Hoch { background: #ffebee; color: #c62828; }
+    .prio-Mittel { background: #fffde7; color: #f57f17; }
+    .prio-Niedrig { background: #e8f5e9; color: #2e7d32; }
+
+    .status-Erledigt .task-title {
+      text-decoration: line-through;
+      color: #999;
+    }
+
+    .btn-delete {
+      background: transparent;
+      border: none;
+      color: #d32f2f;
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+
+    @media (max-width: 900px) {
+      .add-form {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header-title">
+    <img src="https://aqownulwmwdtrgzmsgqn.supabase.co/storage/v1/object/public/bench-images/icon.png" alt="App Icon">
+    <h1>Mein Alltags-Planer</h1>
+  </div>
+
+  <!-- Neue Aufgabe eintragen -->
+  <form class="add-form" id="todo-form">
+    <input type="text" id="task-input" placeholder="Neue Aufgabe..." required>
+    <input type="text" id="note-input-add" placeholder="Notiz (z.B. Material bestellt)...">
+    <input type="date" id="due-date-add" title="Termin / Fälligkeit">
+    <select id="prio-select">
+      <option value="Niedrig">🟢 Niedrig</option>
+      <option value="Mittel" selected>🟡 Mittel</option>
+      <option value="Hoch">🔴 Hoch</option>
+    </select>
+    <select id="status-select">
+      <option value="Offen">Offen</option>
+      <option value="In Arbeit">In Arbeit</option>
+      <option value="Erledigt">Erledigt</option>
+    </select>
+    <button type="submit" class="btn-add">+ Hinzufügen</button>
+  </form>
+
+  <!-- Filter-Buttons -->
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="setFilter('Alle', this)">Alle</button>
+    <button class="filter-btn" onclick="setFilter('Offen', this)">Offen</button>
+    <button class="filter-btn" onclick="setFilter('In Arbeit', this)">In Arbeit</button>
+    <button class="filter-btn" onclick="setFilter('Erledigt', this)">Erledigt</button>
+  </div>
+
+  <!-- Tabelle -->
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 110px;">Status</th>
+        <th style="width: 180px;">Aufgabe</th>
+        <th>Notiz / Details</th>
+        <th style="width: 130px;">Termin</th>
+        <th style="width: 90px;">Erstellt am</th>
+        <th style="width: 85px;">Prio</th>
+        <th style="width: 30px;"></th>
+      </tr>
+    </thead>
+    <tbody id="todo-list">
+      <!-- Wird dynamisch gefüllt -->
+    </tbody>
+  </table>
+</div>
+
+<script>
+  // -------------------------------------------------------------
+  // SUPABASE KONFIGURATION
+  // -------------------------------------------------------------
+  const SUPABASE_URL = 'https://aqownulwmwdtrgzmsgqn.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_a_CXe4OWZN0vdnUPPF_Avg_AY55SFMN';
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  // -------------------------------------------------------------
+
+  let todos = [];
+  let currentFilter = 'Alle';
+
+  const form = document.getElementById('todo-form');
+  const taskInput = document.getElementById('task-input');
+  const noteInputAdd = document.getElementById('note-input-add');
+  const dueDateAdd = document.getElementById('due-date-add');
+  const prioSelect = document.getElementById('prio-select');
+  const statusSelect = document.getElementById('status-select');
+  const todoList = document.getElementById('todo-list');
+
+  // Datensätze laden
+  document.addEventListener('DOMContentLoaded', fetchTodos);
+
+  async function fetchTodos() {
+    const { data, error } = await supabaseClient
+      .from('my_todos')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Fehler beim Laden:', error);
+      return;
+    }
+
+    todos = data;
+    render();
+  }
+
+  // Neue Aufgabe speichern
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const newTodo = {
+      title: taskInput.value.trim(),
+      note: noteInputAdd.value.trim(),
+      due_date: dueDateAdd.value || null,
+      prio: prioSelect.value,
+      status: statusSelect.value
+    };
+
+    const { data, error } = await supabaseClient
+      .from('my_todos')
+      .insert([newTodo])
+      .select();
+
+    if (error) {
+      console.error('Fehler beim Speichern:', error);
+      alert('Fehler beim Speichern!');
+      return;
+    }
+
+    if (data && data.length > 0) {
+      todos.unshift(data[0]);
+      render();
+    }
+
+    taskInput.value = '';
+    noteInputAdd.value = '';
+    dueDateAdd.value = '';
+  });
+
+  // Filter setzen
+  function setFilter(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  }
+
+  // Status ändern
+  async function updateStatus(id, newStatus) {
+    todos = todos.map(t => t.id === id ? { ...t, status: newStatus } : t);
+    render();
+
+    const { error } = await supabaseClient
+      .from('my_todos')
+      .update({ status: newStatus })
+      .eq('id', id);
+
+    if (error) console.error('Fehler beim Aktualisieren:', error);
+  }
+
+  // Notiz ändern
+  async function updateNote(id, newNote) {
+    const trimmedNote = newNote.trim();
+    todos = todos.map(t => t.id === id ? { ...t, note: trimmedNote } : t);
+
+    const { error } = await supabaseClient
+      .from('my_todos')
+      .update({ note: trimmedNote })
+      .eq('id', id);
+
+    if (error) console.error('Fehler beim Aktualisieren der Notiz:', error);
+  }
+
+  // Fälligkeit/Termin ändern
+  async function updateDueDate(id, newDate) {
+    const val = newDate || null;
+    todos = todos.map(t => t.id === id ? { ...t, due_date: val } : t);
+
+    const { error } = await supabaseClient
+      .from('my_todos')
+      .update({ due_date: val })
+      .eq('id', id);
+
+    if (error) console.error('Fehler beim Aktualisieren des Termins:', error);
+  }
+
+  // Löschen
+  async function deleteTodo(id) {
+    todos = todos.filter(t => t.id !== id);
+    render();
+
+    const { error } = await supabaseClient
+      .from('my_todos')
+      .delete()
+      .eq('id', id);
+
+    if (error) console.error('Fehler beim Löschen:', error);
+  }
+
+  // Datum formatieren (DD.MM.YYYY)
+  function formatDate(isoString) {
+    if (!isoString) return '';
+    const d = new Date(isoString);
+    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  // Liste aufbauen
+  function render() {
+    todoList.innerHTML = '';
+
+    const filteredTodos = todos.filter(t => {
+      if (currentFilter === 'Alle') return true;
+      return t.status === currentFilter;
+    });
+
+    if (filteredTodos.length === 0) {
+      todoList.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#999; padding:20px;">Keine Aufgaben vorhanden</td></tr>`;
+      return;
+    }
+
+    filteredTodos.forEach(todo => {
+      const tr = document.createElement('tr');
+      tr.className = `status-${todo.status.replace(" ", "-")}`;
+
+      tr.innerHTML = `
+        <td>
+          <select onchange="updateStatus(${todo.id}, this.value)">
+            <option value="Offen" ${todo.status === 'Offen' ? 'selected' : ''}>Offen</option>
+            <option value="In Arbeit" ${todo.status === 'In Arbeit' ? 'selected' : ''}>In Arbeit</option>
+            <option value="Erledigt" ${todo.status === 'Erledigt' ? 'selected' : ''}>Erledigt</option>
+          </select>
+        </td>
+        <td class="task-title">${escapeHtml(todo.title)}</td>
+        <td>
+          <input 
+            type="text" 
+            class="note-input" 
+            placeholder="Notiz hinzufügen..." 
+            value="${escapeHtml(todo.note || '')}" 
+            onblur="updateNote(${todo.id}, this.value)"
+            onkeydown="if(event.key==='Enter') this.blur();"
+          >
+        </td>
+        <td>
+          <input 
+            type="date" 
+            class="date-table-input"
+            value="${todo.due_date || ''}" 
+            onchange="updateDueDate(${todo.id}, this.value)"
+          >
+        </td>
+        <td><span class="created-date">${formatDate(todo.created_at)}</span></td>
+        <td><span class="badge prio-${todo.prio}">${todo.prio}</span></td>
+        <td><button class="btn-delete" onclick="deleteTodo(${todo.id})">🗑️</button></td>
+      `;
+      todoList.appendChild(tr);
+    });
+  }
+
+  function escapeHtml(text) {
+    return text.replace(/[&<>"']/g, function(m) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]; });
+  }
+</script>
+
+</body>
+</html>
