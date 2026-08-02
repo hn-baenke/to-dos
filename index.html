@@ -5,21 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mein Alltags-Planer</title>
   
-  <!-- App Icon (Favicon & Apple Touch Icon für iOS) -->
   <link rel="icon" type="image/png" href="https://aqownulwmwdtrgzmsgqn.supabase.co/storage/v1/object/public/bench-images/icon.png">
   <link rel="apple-touch-icon" href="https://aqownulwmwdtrgzmsgqn.supabase.co/storage/v1/object/public/bench-images/icon.png">
 
-  <!-- PWA Settings für iOS & Android -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Alltags-Planer">
   <meta name="theme-color" content="#2e7d32">
 
-  <!-- Web App Manifest (Inline) -->
-  <link rel="manifest" href='data:application/json,{"name":"Mein Alltags-Planer","short_name":"Planer","start_url":".","display":"standalone","background_color":"#f4f6f8","theme_color":"#2e7d32","icons":[{"src":"https://aqownulwmwdtrgzmsgqn.supabase.co/storage/v1/object/public/bench-images/icon.png","sizes":"300x300","type":"image/png","purpose":"any maskable"}]}'>
-
-  <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -29,6 +23,13 @@
       --primary: #2e7d32;
       --primary-hover: #1b5e20;
       --border: #e0e0e0;
+      
+      --due-overdue-bg: #ffebee;
+      --due-overdue-color: #c62828;
+      --due-today-bg: #fffde7;
+      --due-today-color: #f57f17;
+      --due-week-bg: #e8f5e9;
+      --due-week-color: #2e7d32;
     }
 
     body {
@@ -43,19 +44,18 @@
 
     .container {
       width: 100%;
-      max-width: 1100px;
+      max-width: 1180px;
       background: var(--card-bg);
       padding: 24px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
 
-    /* Header mit Logo-Icon */
     .header-title {
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     .header-title img {
@@ -71,23 +71,114 @@
       font-size: 1.5rem;
     }
 
-    /* Formular zum Anlegen */
-    .add-form {
-      display: grid;
-      grid-template-columns: 2fr 1.5fr 1.2fr 1fr 1fr auto;
-      gap: 10px;
-      margin-bottom: 24px;
+    /* Fortschrittsbalken Styling */
+    .progress-wrapper {
+      margin-bottom: 20px;
+      background: #f0f4f1;
+      border-radius: 8px;
+      padding: 10px 14px;
+      border: 1px solid #e0eae1;
     }
 
-    input, select, button {
-      padding: 9px;
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 6px;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--primary);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Info-Banner Container */
+    .alert-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .alert-banner {
+      display: none;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .alert-banner.overdue {
+      background-color: #ffebee;
+      color: #b71c1c;
+      border: 1px solid #ffcdd2;
+    }
+
+    .alert-banner.today {
+      background-color: #fff8e1;
+      color: #f57f17;
+      border: 1px solid #ffe082;
+    }
+
+    .alert-link {
+      color: inherit;
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: bold;
+      margin-left: 6px;
+    }
+
+    .alert-banner button {
+      background: transparent;
+      border: none;
+      color: inherit;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+
+    @keyframes rowHighlight {
+      0% { background-color: #fff9c4; transform: scale(1.01); }
+      50% { background-color: #fff176; transform: scale(1.01); }
+      100% { background-color: transparent; transform: scale(1); }
+    }
+
+    .highlight-row {
+      animation: rowHighlight 2s ease-in-out;
+    }
+
+    .add-form {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr auto 1.3fr 1fr 1fr auto;
+      gap: 8px;
+      margin-bottom: 24px;
+      align-items: center;
+    }
+
+    input, select, button, textarea {
+      padding: 8px;
       border: 1px solid var(--border);
       border-radius: 6px;
       font-size: 0.85rem;
       outline: none;
+      font-family: inherit;
     }
 
-    input:focus, select:focus {
+    input:focus, select:focus, textarea:focus {
       border-color: var(--primary);
     }
 
@@ -104,11 +195,20 @@
       background-color: var(--primary-hover);
     }
 
-    /* Filter-Leiste */
+    /* Leiste für Filter, Suche & Aufräumen */
+    .controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
     .filter-bar {
       display: flex;
       gap: 8px;
-      margin-bottom: 16px;
+      flex-wrap: wrap;
     }
 
     .filter-btn {
@@ -126,7 +226,33 @@
       color: white;
     }
 
-    /* Tabelle */
+    .right-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .search-input {
+      width: 180px;
+      padding: 6px 10px;
+      border-radius: 20px;
+    }
+
+    .btn-clean {
+      background: #fdf2f2;
+      color: #d32f2f;
+      border: 1px solid #ffcdd2;
+      padding: 6px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .btn-clean:hover {
+      background: #ffebee;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -144,19 +270,67 @@
       color: #777;
       font-size: 0.8rem;
       text-transform: uppercase;
+      user-select: none;
     }
 
-    .note-input, .date-table-input {
+    th.sortable {
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    th.sortable:hover {
+      color: var(--primary);
+    }
+
+    .sort-icon {
+      font-size: 0.75rem;
+      margin-left: 4px;
+      color: var(--primary);
+    }
+
+    /* Stern / Nächste Schritte Styling */
+    .btn-star {
+      background: transparent;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: #ccc;
+      padding: 0;
+      line-height: 1;
+      transition: transform 0.15s ease, color 0.15s ease;
+    }
+
+    .btn-star.starred {
+      color: #fbc02d;
+    }
+
+    .btn-star:hover {
+      transform: scale(1.2);
+    }
+
+    tr.row-starred {
+      background-color: #fffde7;
+    }
+
+    .auto-textarea {
       width: 95%;
+      min-height: 24px;
       padding: 5px 6px;
       font-size: 0.85rem;
       border: 1px solid transparent;
-      background: #f9f9f9;
+      background: transparent;
       border-radius: 4px;
-      color: #555;
+      color: #333;
+      resize: none;
+      overflow: hidden;
+      box-sizing: border-box;
+      display: block;
     }
 
-    .note-input:hover, .note-input:focus,
+    .task-title-input { font-weight: 500; }
+    .note-input { color: #555; }
+
+    .auto-textarea:hover, .auto-textarea:focus,
     .date-table-input:hover, .date-table-input:focus {
       border-color: var(--border);
       background: #fff;
@@ -167,18 +341,52 @@
       color: #888;
     }
 
-    .badge {
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 0.75rem;
+    .date-cell-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: 4px;
+      border-radius: 6px;
+    }
+
+    .due-overdue {
+      background-color: var(--due-overdue-bg);
+      border: 1px solid var(--due-overdue-color);
+    }
+    .due-overdue input, .due-overdue select {
+      color: var(--due-overdue-color) !important;
       font-weight: bold;
     }
 
-    .prio-Hoch { background: #ffebee; color: #c62828; }
-    .prio-Mittel { background: #fffde7; color: #f57f17; }
-    .prio-Niedrig { background: #e8f5e9; color: #2e7d32; }
+    .due-today {
+      background-color: var(--due-today-bg);
+      border: 1px solid var(--due-today-color);
+    }
+    .due-today input, .due-today select {
+      color: var(--due-today-color) !important;
+      font-weight: bold;
+    }
 
-    .status-Erledigt .task-title {
+    .due-week {
+      background-color: var(--due-week-bg);
+      border: 1px solid var(--due-week-color);
+    }
+    .due-week input, .due-week select {
+      color: var(--due-week-color) !important;
+      font-weight: bold;
+    }
+
+    .prio-select-table {
+      border: 1px solid transparent;
+      background: transparent;
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-weight: 500;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .status-Erledigt .task-title-input {
       text-decoration: line-through;
       color: #999;
     }
@@ -192,9 +400,9 @@
     }
 
     @media (max-width: 900px) {
-      .add-form {
-        grid-template-columns: 1fr;
-      }
+      .add-form { grid-template-columns: 1fr; }
+      .controls-bar { flex-direction: column; align-items: stretch; }
+      .search-input { width: 100%; }
     }
   </style>
 </head>
@@ -206,11 +414,41 @@
     <h1>Mein Alltags-Planer</h1>
   </div>
 
-  <!-- Neue Aufgabe eintragen -->
+  <!-- Fortschrittsbalken -->
+  <div class="progress-wrapper">
+    <div class="progress-info">
+      <span id="progress-text">0 von 0 Aufgaben erledigt (0%)</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progress-bar-fill"></div>
+    </div>
+  </div>
+
+  <!-- Info-Banner -->
+  <div class="alert-container">
+    <div class="alert-banner overdue" id="overdue-alert">
+      <span id="overdue-alert-text"></span>
+      <button onclick="closeAlert('overdue-alert')">✕</button>
+    </div>
+    <div class="alert-banner today" id="today-alert">
+      <span id="today-alert-text"></span>
+      <button onclick="closeAlert('today-alert')">✕</button>
+    </div>
+  </div>
+
+  <!-- Formular -->
   <form class="add-form" id="todo-form">
     <input type="text" id="task-input" placeholder="Neue Aufgabe..." required>
     <input type="text" id="note-input-add" placeholder="Notiz (z.B. Material bestellt)...">
-    <input type="date" id="due-date-add" title="Termin / Fälligkeit">
+    
+    <select id="date-type-add" onchange="toggleDateInputAdd()">
+      <option value="date">📅 Datum</option>
+      <option value="week">🗓️ KW</option>
+    </select>
+    
+    <input type="date" id="due-date-add" title="Genaue Fälligkeit">
+    <input type="week" id="due-week-add" style="display:none;" title="Kalenderwoche">
+
     <select id="prio-select">
       <option value="Niedrig">🟢 Niedrig</option>
       <option value="Mittel" selected>🟡 Mittel</option>
@@ -224,55 +462,111 @@
     <button type="submit" class="btn-add">+ Hinzufügen</button>
   </form>
 
-  <!-- Filter-Buttons -->
-  <div class="filter-bar">
-    <button class="filter-btn active" onclick="setFilter('Alle', this)">Alle</button>
-    <button class="filter-btn" onclick="setFilter('Offen', this)">Offen</button>
-    <button class="filter-btn" onclick="setFilter('In Arbeit', this)">In Arbeit</button>
-    <button class="filter-btn" onclick="setFilter('Erledigt', this)">Erledigt</button>
+  <!-- Steuerung: Filter, Suche & Aufräumen -->
+  <div class="controls-bar">
+    <div class="filter-bar">
+      <button class="filter-btn active" id="filter-btn-Alle" onclick="setFilter('Alle', this)">Alle</button>
+      <button class="filter-btn" id="filter-btn-Next" onclick="setFilter('Next', this)">⭐ Als Nächstes</button>
+      <button class="filter-btn" id="filter-btn-Offen" onclick="setFilter('Offen', this)">Offen</button>
+      <button class="filter-btn" id="filter-btn-In Arbeit" onclick="setFilter('In Arbeit', this)">In Arbeit</button>
+      <button class="filter-btn" id="filter-btn-Erledigt" onclick="setFilter('Erledigt', this)">Erledigt</button>
+    </div>
+
+    <div class="right-controls">
+      <input type="text" id="search-input" class="search-input" placeholder="🔍 Suchen..." oninput="render()">
+      <button class="btn-clean" onclick="cleanCompleted()">🧹 Erledigte aufräumen</button>
+    </div>
   </div>
 
   <!-- Tabelle -->
   <table>
     <thead>
       <tr>
-        <th style="width: 110px;">Status</th>
-        <th style="width: 180px;">Aufgabe</th>
-        <th>Notiz / Details</th>
-        <th style="width: 130px;">Termin</th>
-        <th style="width: 90px;">Erstellt am</th>
-        <th style="width: 85px;">Prio</th>
+        <th class="sortable" onclick="sortTable('is_next')" style="width: 35px; text-align: center;">⭐ <span id="sort-is_next" class="sort-icon"></span></th>
+        <th class="sortable" onclick="sortTable('status')" style="width: 110px;">Status <span id="sort-status" class="sort-icon"></span></th>
+        <th class="sortable" onclick="sortTable('title')" style="width: 210px;">Aufgabe <span id="sort-title" class="sort-icon"></span></th>
+        <th class="sortable" onclick="sortTable('note')">Notiz / Details <span id="sort-note" class="sort-icon"></span></th>
+        <th class="sortable" onclick="sortTable('due_date')" style="width: 145px;">Termin / KW <span id="sort-due_date" class="sort-icon"></span></th>
+        <th class="sortable" onclick="sortTable('created_at')" style="width: 90px;">Erstellt <span id="sort-created_at" class="sort-icon"></span></th>
+        <th class="sortable" onclick="sortTable('prio')" style="width: 105px;">Prio <span id="sort-prio" class="sort-icon"></span></th>
         <th style="width: 30px;"></th>
       </tr>
     </thead>
-    <tbody id="todo-list">
-      <!-- Wird dynamisch gefüllt -->
-    </tbody>
+    <tbody id="todo-list"></tbody>
   </table>
 </div>
 
 <script>
-  // -------------------------------------------------------------
-  // SUPABASE KONFIGURATION
-  // -------------------------------------------------------------
   const SUPABASE_URL = 'https://aqownulwmwdtrgzmsgqn.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_a_CXe4OWZN0vdnUPPF_Avg_AY55SFMN';
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  // -------------------------------------------------------------
 
   let todos = [];
+  let rowDateModes = {};
   let currentFilter = 'Alle';
+  let sortColumn = 'created_at';
+  let sortDirection = 'desc';
 
   const form = document.getElementById('todo-form');
   const taskInput = document.getElementById('task-input');
   const noteInputAdd = document.getElementById('note-input-add');
+  const dateTypeAdd = document.getElementById('date-type-add');
   const dueDateAdd = document.getElementById('due-date-add');
+  const dueWeekAdd = document.getElementById('due-week-add');
   const prioSelect = document.getElementById('prio-select');
   const statusSelect = document.getElementById('status-select');
   const todoList = document.getElementById('todo-list');
+  const searchInput = document.getElementById('search-input');
 
-  // Datensätze laden
   document.addEventListener('DOMContentLoaded', fetchTodos);
+
+  function getCurrentISOWeek() {
+    const today = new Date();
+    const target = new Date(today.valueOf());
+    const dayNumber = (today.getDay() + 6) % 7;
+    target.setDate(target.getDate() - dayNumber + 3);
+    const firstThursday = target.valueOf();
+    target.setMonth(0, 1);
+    if (target.getDay() !== 4) {
+      target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7));
+    }
+    const weekNum = 1 + Math.round((firstThursday - target.valueOf()) / 604800000);
+    const year = today.getFullYear();
+    const formattedWeek = weekNum < 10 ? '0' + weekNum : weekNum;
+    return `${year}-W${formattedWeek}`;
+  }
+
+  function getDefaultWeekString() {
+    const today = new Date();
+    today.setDate(today.getDate() + 7);
+    const target = new Date(today.valueOf());
+    const dayNumber = (today.getDay() + 6) % 7;
+    target.setDate(target.getDate() - dayNumber + 3);
+    const firstThursday = target.valueOf();
+    target.setMonth(0, 1);
+    if (target.getDay() !== 4) {
+      target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7));
+    }
+    const weekNum = 1 + Math.round((firstThursday - target.valueOf()) / 604800000);
+    const year = today.getFullYear();
+    const formattedWeek = weekNum < 10 ? '0' + weekNum : weekNum;
+    return `${year}-W${formattedWeek}`;
+  }
+
+  function toggleDateInputAdd() {
+    if (dateTypeAdd.value === 'date') {
+      dueDateAdd.style.display = 'block';
+      dueWeekAdd.style.display = 'none';
+      dueWeekAdd.value = '';
+    } else {
+      dueDateAdd.style.display = 'none';
+      dueWeekAdd.style.display = 'block';
+      dueDateAdd.value = '';
+      if (!dueWeekAdd.value) {
+        dueWeekAdd.value = getDefaultWeekString();
+      }
+    }
+  }
 
   async function fetchTodos() {
     const { data, error } = await supabaseClient
@@ -286,19 +580,129 @@
     }
 
     todos = data;
+    checkAlerts();
+    updateProgressBar();
     render();
   }
 
-  // Neue Aufgabe speichern
+  function updateProgressBar() {
+    const total = todos.length;
+    const completed = todos.filter(t => t.status === 'Erledigt').length;
+    const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    document.getElementById('progress-text').innerText = `${completed} von ${total} Aufgabe${total !== 1 ? 'n' : ''} erledigt (${percent}%)`;
+    document.getElementById('progress-bar-fill').style.width = `${percent}%`;
+  }
+
+  function checkAlerts() {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const currentKW = getCurrentISOWeek();
+
+    const overdueList = todos.filter(t => {
+      if (t.status === 'Erledigt' || !t.due_date) return false;
+      return t.due_date.includes('-W') ? t.due_date < currentKW : t.due_date < todayStr;
+    });
+
+    const todayList = todos.filter(t => {
+      if (t.status === 'Erledigt' || !t.due_date) return false;
+      return !t.due_date.includes('-W') && t.due_date === todayStr;
+    });
+
+    const overdueEl = document.getElementById('overdue-alert');
+    const overdueTextEl = document.getElementById('overdue-alert-text');
+    if (overdueList.length > 0) {
+      const targetId = overdueList[0].id;
+      overdueTextEl.innerHTML = `⚠️ Du hast <strong>${overdueList.length} überfällige Aufgabe${overdueList.length > 1 ? 'n' : ''}</strong>! <span class="alert-link" onclick="jumpToTask(${targetId})">➡️ Anzeigen</span>`;
+      overdueEl.style.display = 'flex';
+    } else {
+      overdueEl.style.display = 'none';
+    }
+
+    const todayEl = document.getElementById('today-alert');
+    const todayTextEl = document.getElementById('today-alert-text');
+    if (todayList.length > 0) {
+      const targetId = todayList[0].id;
+      todayTextEl.innerHTML = `📅 Du hast <strong>${todayList.length} Aufgabe${todayList.length > 1 ? 'n' : ''} für HEUTE</strong>! <span class="alert-link" onclick="jumpToTask(${targetId})">➡️ Anzeigen</span>`;
+      todayEl.style.display = 'flex';
+    } else {
+      todayEl.style.display = 'none';
+    }
+  }
+
+  function closeAlert(alertId) {
+    document.getElementById(alertId).style.display = 'none';
+  }
+
+  function jumpToTask(id) {
+    if (currentFilter !== 'Alle') {
+      const allBtn = document.getElementById('filter-btn-Alle');
+      setFilter('Alle', allBtn);
+    }
+
+    setTimeout(() => {
+      const row = document.getElementById(`todo-row-${id}`);
+      if (row) {
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        row.classList.remove('highlight-row');
+        void row.offsetWidth;
+        row.classList.add('highlight-row');
+      }
+    }, 100);
+  }
+
+  function getDueDateHighlightClass(dueDate, status) {
+    if (!dueDate || status === 'Erledigt') return '';
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const currentKW = getCurrentISOWeek();
+
+    if (dueDate.includes('-W')) {
+      if (dueDate < currentKW) return 'due-overdue';
+      if (dueDate === currentKW) return 'due-today';
+    } else {
+      if (dueDate < todayStr) return 'due-overdue';
+      if (dueDate === todayStr) return 'due-today';
+      
+      const targetDate = new Date(dueDate);
+      const targetKW = getISOWeekFromDate(targetDate);
+      if (targetKW === currentKW) return 'due-week';
+    }
+
+    return '';
+  }
+
+  function getISOWeekFromDate(d) {
+    const target = new Date(d.valueOf());
+    const dayNumber = (d.getDay() + 6) % 7;
+    target.setDate(target.getDate() - dayNumber + 3);
+    const firstThursday = target.valueOf();
+    target.setMonth(0, 1);
+    if (target.getDay() !== 4) {
+      target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7));
+    }
+    const weekNum = 1 + Math.round((firstThursday - target.valueOf()) / 604800000);
+    const year = d.getFullYear();
+    const formattedWeek = weekNum < 10 ? '0' + weekNum : weekNum;
+    return `${year}-W${formattedWeek}`;
+  }
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     
+    let termVal = null;
+    if (dateTypeAdd.value === 'date' && dueDateAdd.value) {
+      termVal = dueDateAdd.value;
+    } else if (dateTypeAdd.value === 'week' && dueWeekAdd.value) {
+      termVal = dueWeekAdd.value;
+    }
+
     const newTodo = {
       title: taskInput.value.trim(),
       note: noteInputAdd.value.trim(),
-      due_date: dueDateAdd.value || null,
+      due_date: termVal,
       prio: prioSelect.value,
-      status: statusSelect.value
+      status: statusSelect.value,
+      is_next: false
     };
 
     const { data, error } = await supabaseClient
@@ -314,15 +718,17 @@
 
     if (data && data.length > 0) {
       todos.unshift(data[0]);
+      checkAlerts();
+      updateProgressBar();
       render();
     }
 
     taskInput.value = '';
     noteInputAdd.value = '';
     dueDateAdd.value = '';
+    dueWeekAdd.value = '';
   });
 
-  // Filter setzen
   function setFilter(filter, btn) {
     currentFilter = filter;
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -330,84 +736,181 @@
     render();
   }
 
-  // Status ändern
-  async function updateStatus(id, newStatus) {
-    todos = todos.map(t => t.id === id ? { ...t, status: newStatus } : t);
+  function sortTable(column) {
+    if (sortColumn === column) {
+      sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortColumn = column;
+      sortDirection = 'asc';
+    }
+    render();
+  }
+
+  async function toggleStar(id) {
+    const todo = todos.find(t => t.id === id);
+    if (!todo) return;
+    const updatedNext = !todo.is_next;
+    
+    todos = todos.map(t => t.id === id ? { ...t, is_next: updatedNext } : t);
     render();
 
-    const { error } = await supabaseClient
-      .from('my_todos')
-      .update({ status: newStatus })
-      .eq('id', id);
-
-    if (error) console.error('Fehler beim Aktualisieren:', error);
+    await supabaseClient.from('my_todos').update({ is_next: updatedNext }).eq('id', id);
   }
 
-  // Notiz ändern
+  async function updateStatus(id, newStatus) {
+    todos = todos.map(t => t.id === id ? { ...t, status: newStatus } : t);
+    checkAlerts();
+    updateProgressBar();
+    render();
+    await supabaseClient.from('my_todos').update({ status: newStatus }).eq('id', id);
+  }
+
+  async function updatePrio(id, newPrio) {
+    todos = todos.map(t => t.id === id ? { ...t, prio: newPrio } : t);
+    await supabaseClient.from('my_todos').update({ prio: newPrio }).eq('id', id);
+  }
+
+  async function updateTitle(id, newTitle) {
+    const trimmed = newTitle.trim();
+    if (!trimmed) return;
+    todos = todos.map(t => t.id === id ? { ...t, title: trimmed } : t);
+    await supabaseClient.from('my_todos').update({ title: trimmed }).eq('id', id);
+  }
+
   async function updateNote(id, newNote) {
-    const trimmedNote = newNote.trim();
-    todos = todos.map(t => t.id === id ? { ...t, note: trimmedNote } : t);
-
-    const { error } = await supabaseClient
-      .from('my_todos')
-      .update({ note: trimmedNote })
-      .eq('id', id);
-
-    if (error) console.error('Fehler beim Aktualisieren der Notiz:', error);
+    const trimmed = newNote.trim();
+    todos = todos.map(t => t.id === id ? { ...t, note: trimmed } : t);
+    await supabaseClient.from('my_todos').update({ note: trimmed }).eq('id', id);
   }
 
-  // Fälligkeit/Termin ändern
   async function updateDueDate(id, newDate) {
     const val = newDate || null;
     todos = todos.map(t => t.id === id ? { ...t, due_date: val } : t);
-
-    const { error } = await supabaseClient
-      .from('my_todos')
-      .update({ due_date: val })
-      .eq('id', id);
-
-    if (error) console.error('Fehler beim Aktualisieren des Termins:', error);
+    checkAlerts();
+    render();
+    await supabaseClient.from('my_todos').update({ due_date: val }).eq('id', id);
   }
 
-  // Löschen
   async function deleteTodo(id) {
     todos = todos.filter(t => t.id !== id);
+    checkAlerts();
+    updateProgressBar();
     render();
-
-    const { error } = await supabaseClient
-      .from('my_todos')
-      .delete()
-      .eq('id', id);
-
-    if (error) console.error('Fehler beim Löschen:', error);
+    await supabaseClient.from('my_todos').delete().eq('id', id);
   }
 
-  // Datum formatieren (DD.MM.YYYY)
+  async function cleanCompleted() {
+    const completedList = todos.filter(t => t.status === 'Erledigt');
+    if (completedList.length === 0) {
+      alert('Keine erledigten Aufgaben zum Aufräumen vorhanden.');
+      return;
+    }
+
+    if (!confirm(`Möchtest du wirklich alle ${completedList.length} erledigten Aufgaben dauerhaft löschen?`)) {
+      return;
+    }
+
+    todos = todos.filter(t => t.status !== 'Erledigt');
+    checkAlerts();
+    updateProgressBar();
+    render();
+
+    await supabaseClient.from('my_todos').delete().eq('status', 'Erledigt');
+  }
+
+  function autoResize(element) {
+    element.style.height = 'auto';
+    element.style.height = element.scrollHeight + 'px';
+  }
+
   function formatDate(isoString) {
     if (!isoString) return '';
     const d = new Date(isoString);
     return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 
-  // Liste aufbauen
   function render() {
     todoList.innerHTML = '';
+    const query = searchInput.value.toLowerCase().trim();
 
-    const filteredTodos = todos.filter(t => {
-      if (currentFilter === 'Alle') return true;
-      return t.status === currentFilter;
+    let filtered = todos.filter(t => {
+      let matchFilter = false;
+      if (currentFilter === 'Alle') matchFilter = true;
+      else if (currentFilter === 'Next') matchFilter = !!t.is_next;
+      else matchFilter = t.status === currentFilter;
+
+      const matchSearch = !query || 
+        t.title.toLowerCase().includes(query) || 
+        (t.note && t.note.toLowerCase().includes(query));
+
+      return matchFilter && matchSearch;
     });
 
-    if (filteredTodos.length === 0) {
-      todoList.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#999; padding:20px;">Keine Aufgaben vorhanden</td></tr>`;
+    const prioOrder = { 'Hoch': 1, 'Mittel': 2, 'Niedrig': 3 };
+    const statusOrder = { 'Offen': 1, 'In Arbeit': 2, 'Erledigt': 3 };
+
+    filtered.sort((a, b) => {
+      let valA = a[sortColumn];
+      let valB = b[sortColumn];
+
+      if (sortColumn === 'is_next') {
+        valA = a.is_next ? 1 : 0;
+        valB = b.is_next ? 1 : 0;
+      } else if (sortColumn === 'prio') {
+        valA = prioOrder[valA] || 99;
+        valB = prioOrder[valB] || 99;
+      } else if (sortColumn === 'status') {
+        valA = statusOrder[valA] || 99;
+        valB = statusOrder[valB] || 99;
+      } else if (sortColumn === 'due_date') {
+        if (!valA) return 1;
+        if (!valB) return -1;
+      }
+
+      if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+      if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    ['is_next', 'status', 'title', 'note', 'due_date', 'created_at', 'prio'].forEach(col => {
+      const el = document.getElementById(`sort-${col}`);
+      if (el) el.innerText = col === sortColumn ? (sortDirection === 'asc' ? ' ▲' : ' ▼') : '';
+    });
+
+    if (filtered.length === 0) {
+      todoList.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#999; padding:20px;">Keine passenden Aufgaben gefunden</td></tr>`;
       return;
     }
 
-    filteredTodos.forEach(todo => {
+    filtered.forEach(todo => {
       const tr = document.createElement('tr');
-      tr.className = `status-${todo.status.replace(" ", "-")}`;
+      tr.id = `todo-row-${todo.id}`;
+      tr.className = `status-${todo.status.replace(" ", "-")} ${todo.is_next ? 'row-starred' : ''}`;
+
+      let currentMode = rowDateModes[todo.id];
+      if (!currentMode) {
+        currentMode = (todo.due_date && todo.due_date.includes('-W')) ? 'week' : 'date';
+      }
+
+      const isWeekMode = currentMode === 'week';
+
+      let weekInputValue = '';
+      if (isWeekMode) {
+        if (todo.due_date && todo.due_date.includes('-W')) {
+          weekInputValue = todo.due_date;
+        } else {
+          weekInputValue = getDefaultWeekString();
+        }
+      }
+
+      const highlightClass = getDueDateHighlightClass(todo.due_date, todo.status);
 
       tr.innerHTML = `
+        <td style="text-align: center;">
+          <button class="btn-star ${todo.is_next ? 'starred' : ''}" onclick="toggleStar(${todo.id})" title="Als Nächstes erledigen">
+            ${todo.is_next ? '★' : '☆'}
+          </button>
+        </td>
         <td>
           <select onchange="updateStatus(${todo.id}, this.value)">
             <option value="Offen" ${todo.status === 'Offen' ? 'selected' : ''}>Offen</option>
@@ -415,35 +918,56 @@
             <option value="Erledigt" ${todo.status === 'Erledigt' ? 'selected' : ''}>Erledigt</option>
           </select>
         </td>
-        <td class="task-title">${escapeHtml(todo.title)}</td>
         <td>
-          <input 
-            type="text" 
-            class="note-input" 
-            placeholder="Notiz hinzufügen..." 
-            value="${escapeHtml(todo.note || '')}" 
-            onblur="updateNote(${todo.id}, this.value)"
-            onkeydown="if(event.key==='Enter') this.blur();"
-          >
+          <textarea class="auto-textarea task-title-input" rows="1" oninput="autoResize(this)" onblur="updateTitle(${todo.id}, this.value)">${escapeHtml(todo.title)}</textarea>
         </td>
         <td>
-          <input 
-            type="date" 
-            class="date-table-input"
-            value="${todo.due_date || ''}" 
-            onchange="updateDueDate(${todo.id}, this.value)"
-          >
+          <textarea class="auto-textarea note-input" placeholder="Notiz..." rows="1" oninput="autoResize(this)" onblur="updateNote(${todo.id}, this.value)">${escapeHtml(todo.note || '')}</textarea>
+        </td>
+        <td>
+          <div class="date-cell-wrapper ${highlightClass}">
+            <select class="date-type-select" onchange="switchDateTypeInTable(${todo.id}, this.value)">
+              <option value="date" ${!isWeekMode ? 'selected' : ''}>📅 Datum</option>
+              <option value="week" ${isWeekMode ? 'selected' : ''}>🗓️ KW</option>
+            </select>
+            ${!isWeekMode ? `
+              <input type="date" class="date-table-input" value="${todo.due_date && !todo.due_date.includes('-W') ? todo.due_date : ''}" onchange="updateDueDate(${todo.id}, this.value)">
+            ` : `
+              <input type="week" class="date-table-input" value="${weekInputValue}" onchange="updateDueDate(${todo.id}, this.value)">
+            `}
+          </div>
         </td>
         <td><span class="created-date">${formatDate(todo.created_at)}</span></td>
-        <td><span class="badge prio-${todo.prio}">${todo.prio}</span></td>
+        <td>
+          <select class="prio-select-table" onchange="updatePrio(${todo.id}, this.value)">
+            <option value="Niedrig" ${todo.prio === 'Niedrig' ? 'selected' : ''}>🟢 Niedrig</option>
+            <option value="Mittel" ${todo.prio === 'Mittel' ? 'selected' : ''}>🟡 Mittel</option>
+            <option value="Hoch" ${todo.prio === 'Hoch' ? 'selected' : ''}>🔴 Hoch</option>
+          </select>
+        </td>
         <td><button class="btn-delete" onclick="deleteTodo(${todo.id})">🗑️</button></td>
       `;
       todoList.appendChild(tr);
     });
+
+    setTimeout(() => {
+      document.querySelectorAll('.auto-textarea').forEach(el => autoResize(el));
+    }, 0);
+  }
+
+  function switchDateTypeInTable(id, type) {
+    rowDateModes[id] = type;
+    const todo = todos.find(t => t.id === id);
+    if (type === 'week' && (!todo.due_date || !todo.due_date.includes('-W'))) {
+      const defaultWeek = getDefaultWeekString();
+      updateDueDate(id, defaultWeek);
+    } else {
+      render();
+    }
   }
 
   function escapeHtml(text) {
-    return text.replace(/[&<>"']/g, function(m) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]; });
+    return text ? text.replace(/[&<>"']/g, function(m) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]; }) : '';
   }
 </script>
 
