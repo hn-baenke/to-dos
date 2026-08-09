@@ -614,8 +614,8 @@
   let todos = [];
   let rowDateModes = {};
   let currentFilter = 'Alle';
-  let sortColumn = 'created_at';
-  let sortDirection = 'desc';
+  let sortColumn = 'prio';
+  let sortDirection = 'asc';
 
   const form = document.getElementById('todo-form');
   const taskInput = document.getElementById('task-input');
@@ -877,6 +877,7 @@
 
   async function updatePrio(id, newPrio) {
     todos = todos.map(t => t.id === id ? { ...t, prio: newPrio } : t);
+    render();
     await supabaseClient.from('my_todos').update({ prio: newPrio }).eq('id', id);
   }
 
@@ -960,15 +961,28 @@
     const statusOrder = { 'Offen': 1, 'In Arbeit': 2, 'Erledigt': 3 };
 
     filtered.sort((a, b) => {
+      // Prioritäts-Sortierung inklusive Stern-Priorisierung
+      if (sortColumn === 'prio') {
+        const prioA = prioOrder[a.prio] || 99;
+        const prioB = prioOrder[b.prio] || 99;
+
+        if (prioA !== prioB) {
+          return sortDirection === 'asc' ? prioA - prioB : prioB - prioA;
+        }
+
+        // Innerhalb derselben Prio: Sterne ganz nach oben
+        const starA = a.is_next ? 0 : 1;
+        const starB = b.is_next ? 0 : 1;
+        return starA - starB;
+      }
+
+      // Alle anderen Standard-Sortierungen
       let valA = a[sortColumn];
       let valB = b[sortColumn];
 
       if (sortColumn === 'is_next') {
         valA = a.is_next ? 1 : 0;
         valB = b.is_next ? 1 : 0;
-      } else if (sortColumn === 'prio') {
-        valA = prioOrder[valA] || 99;
-        valB = prioOrder[valB] || 99;
       } else if (sortColumn === 'status') {
         valA = statusOrder[valA] || 99;
         valB = statusOrder[valB] || 99;
