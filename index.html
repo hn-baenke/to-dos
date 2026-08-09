@@ -266,7 +266,7 @@
   th, td {
     padding: 10px 8px;
     border-bottom: 1px solid var(--border);
-    vertical-align: middle;
+    vertical-align: top;
   }
 
   th {
@@ -402,17 +402,148 @@
     font-size: 1.1rem;
   }
 
-  /* --- MOBIL-OPTIMIERUNG (Responsive Design) --- */
+  /* --- SUBTASK STYLES & BEARBEITUNGS-MODUS --- */
+  .btn-subtask-toggle {
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    line-height: 1;
+    color: #666;
+    transition: all 0.2s ease;
+  }
+
+  .btn-subtask-toggle:hover {
+    background: #e2e2e2;
+    color: #333;
+  }
+
+  .btn-subtask-toggle.active {
+    background: #2e7d32;
+    color: white;
+    border-color: #1b5e20;
+  }
+
+  .subtask-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 10px;
+    margin-left: 6px;
+    user-select: none;
+  }
+
+  .subtask-pill.pending {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+  }
+
+  .subtask-pill.all-done {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+
+  .subtasks-container {
+    margin: 6px 0 2px 0px;
+    padding: 4px 8px;
+    border-left: 2px solid #ccc;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .subtasks-container.editing-mode {
+    background: #fafcfb;
+    border-left: 3px solid var(--primary);
+    padding: 6px 10px;
+    border-radius: 0 6px 6px 0;
+  }
+
+  .subtask-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.83rem;
+  }
+
+  .subtask-item input[type="checkbox"] {
+    cursor: pointer;
+    margin: 0;
+  }
+
+  /* Text-Darstellung im Lese-Modus */
+  .subtask-text-view {
+    font-size: 0.83rem;
+    color: #444;
+    padding: 2px 0;
+  }
+
+  .subtask-item.completed .subtask-text-view {
+    text-decoration: line-through;
+    color: #888;
+  }
+
+  /* Text-Input im Bearbeitungs-Modus */
+  .subtask-item input[type="text"] {
+    flex-grow: 1;
+    border: none;
+    background: transparent;
+    border-bottom: 1px dashed #ddd;
+    padding: 2px 4px;
+    font-size: 0.82rem;
+    color: #333;
+  }
+
+  .subtask-item input[type="text"]:focus {
+    border-bottom-color: var(--primary);
+    background: #fff;
+  }
+
+  .subtask-item.completed input[type="text"] {
+    text-decoration: line-through;
+    color: #888;
+  }
+
+  .btn-subtask-del {
+    background: none;
+    border: none;
+    color: #bbb;
+    cursor: pointer;
+    font-size: 0.75rem;
+    padding: 0 4px;
+  }
+
+  .btn-subtask-del:hover {
+    color: #d32f2f;
+  }
+
+  .btn-add-subtask {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 2px 0 0 0;
+    margin-top: 4px;
+    display: inline-block;
+  }
+
+  .btn-add-subtask:hover {
+    text-decoration: underline;
+  }
+
+  /* --- MOBIL-OPTIMIERUNG --- */
   @media (max-width: 768px) {
-    body {
-      padding: 6px;
-    }
-
-    .container {
-      padding: 12px;
-      border-radius: 8px;
-    }
-
+    body { padding: 6px; }
+    .container { padding: 12px; border-radius: 8px; }
     .add-form {
       grid-template-columns: 1fr;
       gap: 10px;
@@ -421,38 +552,16 @@
       border-radius: 8px;
       border: 1px solid #e0eae1;
     }
+    .controls-bar { flex-direction: column; align-items: stretch; gap: 10px; }
+    .right-controls { flex-direction: column; width: 100%; }
+    .search-input { width: 100%; }
+    .btn-clean { width: 100%; text-align: center; }
 
-    .controls-bar {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 10px;
-    }
+    table, thead, tbody, th, td, tr { display: block; }
+    thead { display: none; }
 
-    .right-controls {
-      flex-direction: column;
-      width: 100%;
-    }
-
-    .search-input {
-      width: 100%;
-    }
-
-    .btn-clean {
-      width: 100%;
-      text-align: center;
-    }
-
-    /* Tabelle für Mobile auf Karten-Layout umstellen */
-    table, thead, tbody, th, td, tr {
-      display: block;
-    }
-
-    thead {
-      display: none; /* Tabellen-Header mobil ausblenden */
-    }
-
-    tr {
-      margin-bottom: 12px;
+    tr.main-row {
+      margin-bottom: 8px;
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 10px;
@@ -468,7 +577,6 @@
       box-sizing: border-box;
     }
 
-    /* Stern & Löschen oben in die Ecken der Karte legen */
     td:first-child {
       position: absolute;
       top: 8px;
@@ -485,7 +593,6 @@
       z-index: 2;
     }
 
-    /* Status-Select und Titel besser anordnen */
     td:nth-child(2) {
       width: calc(100% - 70px) !important;
       margin-bottom: 6px;
@@ -496,23 +603,14 @@
       background: #f0f4f1;
     }
 
-    /* Eingabefelder im Mobile-Modus deutlich abgrenzen */
     .auto-textarea {
       border: 1px solid #e0e0e0;
       background: #fafafa;
       border-radius: 6px;
     }
 
-    .date-cell-wrapper {
-      margin-top: 4px;
-      margin-bottom: 4px;
-    }
-
-    .created-date {
-      display: inline-block;
-      margin-top: 4px;
-      font-size: 0.75rem;
-    }
+    .date-cell-wrapper { margin-top: 4px; margin-bottom: 4px; }
+    .created-date { display: inline-block; margin-top: 4px; font-size: 0.75rem; }
   }
 </style>
 </head>
@@ -594,7 +692,7 @@
       <tr>
         <th class="sortable" onclick="sortTable('is_next')" style="width: 35px; text-align: center;">⭐ <span id="sort-is_next" class="sort-icon"></span></th>
         <th class="sortable" onclick="sortTable('status')" style="width: 110px;">Status <span id="sort-status" class="sort-icon"></span></th>
-        <th class="sortable" onclick="sortTable('title')" style="width: 210px;">Aufgabe <span id="sort-title" class="sort-icon"></span></th>
+        <th class="sortable" onclick="sortTable('title')" style="width: 260px;">Aufgabe / Unteraufgaben <span id="sort-title" class="sort-icon"></span></th>
         <th class="sortable" onclick="sortTable('note')">Notiz / Details <span id="sort-note" class="sort-icon"></span></th>
         <th class="sortable" onclick="sortTable('due_date')" style="width: 145px;">Termin / KW <span id="sort-due_date" class="sort-icon"></span></th>
         <th class="sortable" onclick="sortTable('created_at')" style="width: 90px;">Erstellt <span id="sort-created_at" class="sort-icon"></span></th>
@@ -613,6 +711,7 @@
 
   let todos = [];
   let rowDateModes = {};
+  let editingSubtaskIds = new Set(); // Speichert IDs der Aufgaben, deren Unteraufgaben gerade bearbeitet werden
   let currentFilter = 'Alle';
   let sortColumn = 'prio';
   let sortDirection = 'asc';
@@ -689,7 +788,11 @@
       return;
     }
 
-    todos = data;
+    todos = data.map(t => ({
+      ...t,
+      subtasks: t.subtasks || []
+    }));
+    
     checkAlerts();
     updateProgressBar();
     render();
@@ -812,7 +915,8 @@
       due_date: termVal,
       prio: prioSelect.value,
       status: statusSelect.value,
-      is_next: false
+      is_next: false,
+      subtasks: []
     };
 
     const { data, error } = await supabaseClient
@@ -827,7 +931,9 @@
     }
 
     if (data && data.length > 0) {
-      todos.unshift(data[0]);
+      const created = data[0];
+      created.subtasks = created.subtasks || [];
+      todos.unshift(created);
       checkAlerts();
       updateProgressBar();
       render();
@@ -904,6 +1010,7 @@
 
   async function deleteTodo(id) {
     todos = todos.filter(t => t.id !== id);
+    editingSubtaskIds.delete(id);
     checkAlerts();
     updateProgressBar();
     render();
@@ -929,6 +1036,77 @@
     await supabaseClient.from('my_todos').delete().eq('status', 'Erledigt');
   }
 
+  /* --- SUBTASK LOGIK (Lese- vs Bearbeitungsmodus) --- */
+  function toggleSubtaskEditMode(todoId) {
+    if (editingSubtaskIds.has(todoId)) {
+      editingSubtaskIds.delete(todoId);
+    } else {
+      editingSubtaskIds.add(todoId);
+    }
+    render();
+  }
+
+  async function addSubtask(id) {
+    const todo = todos.find(t => t.id === id);
+    if (!todo) return;
+
+    if (!todo.subtasks) todo.subtasks = [];
+    todo.subtasks.push({ id: Date.now(), title: '', done: false });
+
+    render();
+    
+    // Fokus auf neues Feld setzen
+    setTimeout(() => {
+      const container = document.getElementById(`subtasks-container-${id}`);
+      if (container) {
+        const inputs = container.querySelectorAll('input[type="text"]');
+        if (inputs.length > 0) {
+          inputs[inputs.length - 1].focus();
+        }
+      }
+    }, 50);
+
+    await saveSubtasks(id);
+  }
+
+  async function toggleSubtaskDone(todoId, subtaskId) {
+    const todo = todos.find(t => t.id === todoId);
+    if (!todo) return;
+
+    const sub = todo.subtasks.find(s => s.id === subtaskId);
+    if (sub) {
+      sub.done = !sub.done;
+      render();
+      await saveSubtasks(todoId);
+    }
+  }
+
+  async function updateSubtaskTitle(todoId, subtaskId, newTitle) {
+    const todo = todos.find(t => t.id === todoId);
+    if (!todo) return;
+
+    const sub = todo.subtasks.find(s => s.id === subtaskId);
+    if (sub) {
+      sub.title = newTitle.trim();
+      await saveSubtasks(todoId);
+    }
+  }
+
+  async function deleteSubtask(todoId, subtaskId) {
+    const todo = todos.find(t => t.id === todoId);
+    if (!todo) return;
+
+    todo.subtasks = todo.subtasks.filter(s => s.id !== subtaskId);
+    render();
+    await saveSubtasks(todoId);
+  }
+
+  async function saveSubtasks(todoId) {
+    const todo = todos.find(t => t.id === todoId);
+    if (!todo) return;
+    await supabaseClient.from('my_todos').update({ subtasks: todo.subtasks }).eq('id', todoId);
+  }
+
   function autoResize(element) {
     element.style.height = 'auto';
     element.style.height = element.scrollHeight + 'px';
@@ -950,9 +1128,12 @@
       else if (currentFilter === 'Next') matchFilter = !!t.is_next;
       else matchFilter = t.status === currentFilter;
 
+      const subMatch = t.subtasks && t.subtasks.some(s => s.title.toLowerCase().includes(query));
+
       const matchSearch = !query || 
         t.title.toLowerCase().includes(query) || 
-        (t.note && t.note.toLowerCase().includes(query));
+        (t.note && t.note.toLowerCase().includes(query)) ||
+        subMatch;
 
       return matchFilter && matchSearch;
     });
@@ -961,7 +1142,6 @@
     const statusOrder = { 'Offen': 1, 'In Arbeit': 2, 'Erledigt': 3 };
 
     filtered.sort((a, b) => {
-      // Prioritäts-Sortierung inklusive Stern-Priorisierung
       if (sortColumn === 'prio') {
         const prioA = prioOrder[a.prio] || 99;
         const prioB = prioOrder[b.prio] || 99;
@@ -970,13 +1150,11 @@
           return sortDirection === 'asc' ? prioA - prioB : prioB - prioA;
         }
 
-        // Innerhalb derselben Prio: Sterne ganz nach oben
         const starA = a.is_next ? 0 : 1;
         const starB = b.is_next ? 0 : 1;
         return starA - starB;
       }
 
-      // Alle anderen Standard-Sortierungen
       let valA = a[sortColumn];
       let valB = b[sortColumn];
 
@@ -1009,7 +1187,7 @@
     filtered.forEach(todo => {
       const tr = document.createElement('tr');
       tr.id = `todo-row-${todo.id}`;
-      tr.className = `status-${todo.status.replace(" ", "-")} ${todo.is_next ? 'row-starred' : ''}`;
+      tr.className = `main-row status-${todo.status.replace(" ", "-")} ${todo.is_next ? 'row-starred' : ''}`;
 
       let currentMode = rowDateModes[todo.id];
       if (!currentMode) {
@@ -1028,6 +1206,11 @@
       }
 
       const highlightClass = getDueDateHighlightClass(todo.due_date, todo.status);
+      const subtasks = todo.subtasks || [];
+      const totalSub = subtasks.length;
+      const doneSub = subtasks.filter(s => s.done).length;
+      const isAllDone = totalSub > 0 && totalSub === doneSub;
+      const isEditingSubtasks = editingSubtaskIds.has(todo.id);
 
       tr.innerHTML = `
         <td style="text-align: center;">
@@ -1043,7 +1226,42 @@
           </select>
         </td>
         <td>
-          <textarea class="auto-textarea task-title-input" rows="1" oninput="autoResize(this)" onblur="updateTitle(${todo.id}, this.value)">${escapeHtml(todo.title)}</textarea>
+          <div style="display: flex; align-items: flex-start; gap: 6px;">
+            <button class="btn-subtask-toggle ${isEditingSubtasks ? 'active' : ''}" onclick="toggleSubtaskEditMode(${todo.id})" title="${isEditingSubtasks ? 'Bearbeitung schliessen' : 'Unteraufgaben bearbeiten'}">
+              📋
+            </button>
+            <div style="flex-grow: 1;">
+              <textarea class="auto-textarea task-title-input" rows="1" oninput="autoResize(this)" onblur="updateTitle(${todo.id}, this.value)">${escapeHtml(todo.title)}</textarea>
+              
+              ${totalSub > 0 ? `
+                <span class="subtask-pill ${isAllDone ? 'all-done' : 'pending'}">
+                  ${isAllDone ? '✔' : '📋'} ${doneSub}/${totalSub}
+                </span>
+              ` : ''}
+            </div>
+          </div>
+
+          <!-- Unteraufgaben Liste (Standard = Leseansicht, Editieren = Bearbeitungsmodus) -->
+          ${(totalSub > 0 || isEditingSubtasks) ? `
+            <div class="subtasks-container ${isEditingSubtasks ? 'editing-mode' : ''}" id="subtasks-container-${todo.id}">
+              ${subtasks.map(s => `
+                <div class="subtask-item ${s.done ? 'completed' : ''}">
+                  <input type="checkbox" ${s.done ? 'checked' : ''} onchange="toggleSubtaskDone(${todo.id}, ${s.id})">
+                  
+                  ${isEditingSubtasks ? `
+                    <input type="text" value="${escapeHtml(s.title)}" placeholder="Unteraufgabe..." onblur="updateSubtaskTitle(${todo.id}, ${s.id}, this.value)">
+                    <button class="btn-subtask-del" onclick="deleteSubtask(${todo.id}, ${s.id})">✕</button>
+                  ` : `
+                    <span class="subtask-text-view">${escapeHtml(s.title)}</span>
+                  `}
+                </div>
+              `).join('')}
+
+              ${isEditingSubtasks ? `
+                <button class="btn-add-subtask" onclick="addSubtask(${todo.id})">+ Unteraufgabe hinzufügen</button>
+              ` : ''}
+            </div>
+          ` : ''}
         </td>
         <td>
           <textarea class="auto-textarea note-input" placeholder="Notiz..." rows="1" oninput="autoResize(this)" onblur="updateNote(${todo.id}, this.value)">${escapeHtml(todo.note || '')}</textarea>
