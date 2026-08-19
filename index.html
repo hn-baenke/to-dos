@@ -316,19 +316,20 @@
   }
 
   .auto-textarea {
-    width: 100%;
-    min-height: 24px;
-    padding: 5px 6px;
-    font-size: 0.85rem;
-    border: 1px solid transparent;
-    background: transparent;
-    border-radius: 4px;
-    color: #333;
-    resize: none;
-    overflow: hidden;
-    box-sizing: border-box;
-    display: block;
-  }
+  width: 100%;
+  min-height: 24px;
+  padding: 5px 6px;
+  font-size: 0.85rem;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 4px;
+  color: #333;
+  resize: none;
+  overflow: hidden;
+  box-sizing: border-box;
+  display: block;
+  word-break: break-word; /* Verhindert das Quetschen von langen Wörtern */
+}
 
   .task-title-input { font-weight: 500; }
   .note-input { color: #555; }
@@ -344,13 +345,12 @@
     color: #888;
   }
 
-  .date-cell-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    padding: 4px;
-    border-radius: 6px;
-  }
+  .date-cell-wrapper > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px; /* Abstand verringern */
+}
 
   .due-overdue {
     background-color: var(--due-overdue-bg);
@@ -466,40 +466,45 @@
     border-radius: 0 6px 6px 0;
   }
 
-  .subtask-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.83rem;
-  }
+  /* Container für Unteraufgaben */
+.subtask-item {
+  display: flex;
+  align-items: center; /* Richtet Checkbox, Text und Datum auf einer Höhe aus */
+  gap: 8px;
+  font-size: 0.83rem;
+  padding: 3px 0;
+  width: 100%;
+}
 
   .subtask-item input[type="checkbox"] {
     cursor: pointer;
     margin: 0;
   }
 
-  /* Text-Darstellung im Lese-Modus */
-  .subtask-text-view {
-    font-size: 0.83rem;
-    color: #444;
-    padding: 2px 0;
-  }
+  /* Textbereich nimmt den verfügbaren Platz ein und schiebt das Datum nach rechts */
+.subtask-text-view {
+  font-size: 0.83rem;
+  color: #444;
+  flex: 1;
+  margin-right: 6px;
+  word-break: break-word;
+}
 
   .subtask-item.completed .subtask-text-view {
     text-decoration: line-through;
     color: #888;
   }
 
-  /* Text-Input im Bearbeitungs-Modus */
-  .subtask-item input[type="text"] {
-    flex-grow: 1;
-    border: none;
-    background: transparent;
-    border-bottom: 1px dashed #ddd;
-    padding: 2px 4px;
-    font-size: 0.82rem;
-    color: #333;
-  }
+  /* Textfeld im Edit-Modus soll genauso den Platz ausfüllen */
+.subtask-item input[type="text"] {
+  flex: 1;
+  border: none;
+  background: transparent;
+  border-bottom: 1px dashed #ddd;
+  padding: 2px 4px;
+  font-size: 0.82rem;
+  color: #333;
+}
 
   .subtask-item input[type="text"]:focus {
     border-bottom-color: var(--primary);
@@ -612,6 +617,121 @@
     .date-cell-wrapper { margin-top: 4px; margin-bottom: 4px; }
     .created-date { display: inline-block; margin-top: 4px; font-size: 0.75rem; }
   }
+
+  .date-cell-wrapper select,
+.date-cell-wrapper input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.btn-clear-date {
+  background: none;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
+  padding: 0 2px;
+  font-size: 0.85rem;
+  line-height: 1;
+  flex-shrink: 0; /* Verhindert, dass das X gequetscht wird */
+}
+
+.btn-clear-date:hover {
+  background-color: #ffebee;
+}
+
+/* Schlichtes, rechtsbündiges Datum-Badge */
+.subtask-date-badge {
+  font-size: 0.72rem;
+  color: #555;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  font-weight: 500;
+  margin-left: auto; /* Garantiert den festen Sitz ganz rechts */
+}
+
+/* Datums-Eingabe für Subtasks im Bearbeitungs-Modus */
+.subtask-date-input {
+  font-size: 0.75rem;
+  padding: 1px 4px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  color: #555;
+  background: #fff;
+}
+
+/* Info-Button unter dem Status-Dropdown */
+.btn-info-pop {
+  background: #f0f2f5;
+  border: 1px solid #dcdfe6;
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  color: #555;
+  border-radius: 4px;
+  margin-top: 4px;
+  display: inline-block;
+  transition: all 0.2s ease;
+}
+.btn-info-pop:hover {
+  background: #e4e7ed;
+  color: #111;
+}
+
+/* Pop-up / Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  background: #fff;
+  padding: 20px 24px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  max-width: 320px;
+  width: 90%;
+}
+.modal-content h3 { 
+  margin-top: 0; 
+  margin-bottom: 12px; 
+  font-size: 1.1rem; 
+  color: #1a252f; 
+}
+.modal-close-btn {
+  margin-top: 16px;
+  background: #2c3e50;
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.modal-close-btn:hover {
+  background: #1a252f;
+}
+
+/* Macht die Datum- und Prio-Dropdowns kompakter */
+.date-table-input, 
+.prio-select-table, 
+.date-type-select {
+  padding: 2px 2px 2px 4px !important;
+  font-size: 0.8rem !important;
+  flex-grow: 1;
+  min-width: 0; /* Verhindert das Abschneiden des Textes */
+}
+
+table {
+  width: 100%;
+  table-layout: fixed; /* Zwingt die Tabelle, sich strikt an die Spaltenbreiten zu halten */
+}
+
 </style>
 </head>
 <body>
@@ -689,17 +809,21 @@
   <!-- Tabelle -->
   <table>
     <thead>
-      <tr>
-        <th class="sortable" onclick="sortTable('is_next')" style="width: 35px; text-align: center;">⭐ <span id="sort-is_next" class="sort-icon"></span></th>
-        <th class="sortable" onclick="sortTable('status')" style="width: 110px;">Status <span id="sort-status" class="sort-icon"></span></th>
-        <th class="sortable" onclick="sortTable('title')" style="width: 260px;">Aufgabe / Unteraufgaben <span id="sort-title" class="sort-icon"></span></th>
-        <th class="sortable" onclick="sortTable('note')">Notiz / Details <span id="sort-note" class="sort-icon"></span></th>
-        <th class="sortable" onclick="sortTable('due_date')" style="width: 145px;">Termin / KW <span id="sort-due_date" class="sort-icon"></span></th>
-        <th class="sortable" onclick="sortTable('created_at')" style="width: 90px;">Erstellt <span id="sort-created_at" class="sort-icon"></span></th>
-        <th class="sortable" onclick="sortTable('prio')" style="width: 105px;">Prio <span id="sort-prio" class="sort-icon"></span></th>
-        <th style="width: 30px;"></th>
-      </tr>
-    </thead>
+  <tr>
+    <th class="sortable" onclick="sortTable('is_next')" style="width: 30px; text-align: center;">⭐ <span id="sort-is_next" class="sort-icon"></span></th>
+    <th class="sortable" onclick="sortTable('status')" style="width: 95px;">Status <span id="sort-status" class="sort-icon"></span></th>
+    
+    <!-- 60% des verbleibenden Platzes für Aufgaben -->
+    <th class="sortable" onclick="sortTable('title')" style="width: 60%;">Aufgabe / Unteraufgaben <span id="sort-title" class="sort-icon"></span></th>
+    
+    <!-- 40% des verbleibenden Platzes für Notizen -->
+    <th class="sortable" onclick="sortTable('note')" style="width: 40%;">Notiz / Details <span id="sort-note" class="sort-icon"></span></th>
+    
+    <th class="sortable" onclick="sortTable('due_date')" style="width: 110px;">Termin / KW <span id="sort-due_date" class="sort-icon"></span></th>
+    <th class="sortable" onclick="sortTable('prio')" style="width: 80px;">Prio <span id="sort-prio" class="sort-icon"></span></th>
+    <th style="width: 35px; text-align: center;"></th>
+  </tr>
+</thead>
     <tbody id="todo-list"></tbody>
   </table>
 </div>
@@ -777,6 +901,13 @@
     }
   }
 
+  async function clearDueDate(id) {
+  todos = todos.map(t => t.id === id ? { ...t, due_date: null } : t);
+  checkAlerts();
+  render();
+  await supabaseClient.from('my_todos').update({ due_date: null }).eq('id', id);
+}
+
   async function fetchTodos() {
     const { data, error } = await supabaseClient
       .from('my_todos')
@@ -808,39 +939,62 @@
   }
 
   function checkAlerts() {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const currentKW = getCurrentISOWeek();
+  const todayStr = new Date().toISOString().split('T')[0];
+  const currentKW = getCurrentISOWeek();
 
-    const overdueList = todos.filter(t => {
-      if (t.status === 'Erledigt' || !t.due_date) return false;
-      return t.due_date.includes('-W') ? t.due_date < currentKW : t.due_date < todayStr;
-    });
+  // Helper-Funktion zum Prüfen, ob ein einzelnes Datum überfällig ist
+  const isOverdue = (dueDate) => {
+    if (!dueDate) return false;
+    return dueDate.includes('-W') ? dueDate < currentKW : dueDate < todayStr;
+  };
 
-    const todayList = todos.filter(t => {
-      if (t.status === 'Erledigt' || !t.due_date) return false;
-      return !t.due_date.includes('-W') && t.due_date === todayStr;
-    });
+  // Helper-Funktion zum Prüfen, ob ein Datum exakt HEUTE ist
+  const isToday = (dueDate) => {
+    if (!dueDate) return false;
+    return !dueDate.includes('-W') && dueDate === todayStr;
+  };
 
-    const overdueEl = document.getElementById('overdue-alert');
-    const overdueTextEl = document.getElementById('overdue-alert-text');
-    if (overdueList.length > 0) {
-      const targetId = overdueList[0].id;
-      overdueTextEl.innerHTML = `⚠️ Du hast <strong>${overdueList.length} überfällige Aufgabe${overdueList.length > 1 ? 'n' : ''}</strong>! <span class="alert-link" onclick="jumpToTask(${targetId})">➡️ Anzeigen</span>`;
-      overdueEl.style.display = 'flex';
-    } else {
-      overdueEl.style.display = 'none';
-    }
+  // 1. Überfällige Hauptaufgaben ODER Aufgaben mit überfälligen Unteraufgaben
+  const overdueList = todos.filter(t => {
+    if (t.status === 'Erledigt') return false;
 
-    const todayEl = document.getElementById('today-alert');
-    const todayTextEl = document.getElementById('today-alert-text');
-    if (todayList.length > 0) {
-      const targetId = todayList[0].id;
-      todayTextEl.innerHTML = `📅 Du hast <strong>${todayList.length} Aufgabe${todayList.length > 1 ? 'n' : ''} für HEUTE</strong>! <span class="alert-link" onclick="jumpToTask(${targetId})">➡️ Anzeigen</span>`;
-      todayEl.style.display = 'flex';
-    } else {
-      todayEl.style.display = 'none';
-    }
+    const mainOverdue = isOverdue(t.due_date);
+    const subtaskOverdue = t.subtasks && t.subtasks.some(s => !s.done && isOverdue(s.due_date));
+
+    return mainOverdue || subtaskOverdue;
+  });
+
+  // 2. Hauptaufgaben für HEUTE ODER Aufgaben mit Unteraufgaben für HEUTE
+  const todayList = todos.filter(t => {
+    if (t.status === 'Erledigt') return false;
+
+    const mainToday = isToday(t.due_date);
+    const subtaskToday = t.subtasks && t.subtasks.some(s => !s.done && isToday(s.due_date));
+
+    return mainToday || subtaskToday;
+  });
+
+  // HTML-Alerts aktualisieren
+  const overdueEl = document.getElementById('overdue-alert');
+  const overdueTextEl = document.getElementById('overdue-alert-text');
+  if (overdueList.length > 0) {
+    const targetId = overdueList[0].id;
+    overdueTextEl.innerHTML = `⚠️ Du hast <strong>${overdueList.length} überfällige Aufgabe${overdueList.length > 1 ? 'n' : ''}</strong>! <span class="alert-link" onclick="jumpToTask(${targetId})">➡️ Anzeigen</span>`;
+    overdueEl.style.display = 'flex';
+  } else {
+    overdueEl.style.display = 'none';
   }
+
+  const todayEl = document.getElementById('today-alert');
+  const todayTextEl = document.getElementById('today-alert-text');
+  if (todayList.length > 0) {
+    const targetId = todayList[0].id;
+    todayTextEl.innerHTML = `📅 Du hast <strong>${todayList.length} Aufgabe${todayList.length > 1 ? 'n' : ''} für HEUTE</strong>! <span class="alert-link" onclick="jumpToTask(${targetId})">➡️ Anzeigen</span>`;
+    todayEl.style.display = 'flex';
+  } else {
+    todayEl.style.display = 'none';
+  }
+}
 
   function closeAlert(alertId) {
     document.getElementById(alertId).style.display = 'none';
@@ -981,6 +1135,60 @@
     await supabaseClient.from('my_todos').update({ status: newStatus }).eq('id', id);
   }
 
+  // Öffnet das Info-Popup
+function showInfoModal(id, createdAt, customOrderNum) {
+  const currentNum = customOrderNum || '';
+  
+  const modalHtml = `
+    <div class="modal-overlay" id="info-modal" onclick="closeInfoModal(event)">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <h3>Aufgaben-Details</h3>
+        <p style="margin-bottom: 8px; font-size: 0.9rem; color: #555;">
+          <strong>System-ID:</strong> #${id}
+        </p>
+        <p style="margin-bottom: 12px; font-size: 0.9rem; color: #555;">
+          <strong>Erstellt am:</strong> ${formatDate(createdAt)}
+        </p>
+        
+        <div style="margin-top: 15px;">
+          <label style="display:block; font-size:0.85rem; font-weight:bold; margin-bottom:4px; color:#444;">
+            Auftragsnummer:
+          </label>
+          <input type="text" id="modal-order-num" value="${currentNum}" placeholder="z. B. AUF-2026-08" 
+                 style="width: 100%; padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 0.9rem;">
+        </div>
+
+        <div style="margin-top: 20px; text-align: right;">
+          <button class="modal-close-btn" onclick="saveAndCloseInfoModal(${id})">Speichern & Schliessen</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+// Speichert die eingegebene Auftragsnummer
+async function saveAndCloseInfoModal(id) {
+  const newNum = document.getElementById('modal-order-num').value.trim();
+  
+  const todo = todos.find(t => t.id === id);
+  if (todo) {
+    todo.order_number = newNum;
+    
+    // Korrekter Variablenname und korrekter Tabellenname:
+    await supabaseClient.from('my_todos').update({ order_number: newNum }).eq('id', id);
+    
+    render();
+  }
+  closeInfoModal();
+}
+
+// Schließt das Popup
+function closeInfoModal(event) {
+  const modal = document.getElementById('info-modal');
+  if (modal) modal.remove();
+}
+
   async function updatePrio(id, newPrio) {
     todos = todos.map(t => t.id === id ? { ...t, prio: newPrio } : t);
     render();
@@ -1047,27 +1255,37 @@
   }
 
   async function addSubtask(id) {
-    const todo = todos.find(t => t.id === id);
-    if (!todo) return;
+  const todo = todos.find(t => t.id === id);
+  if (!todo) return;
 
-    if (!todo.subtasks) todo.subtasks = [];
-    todo.subtasks.push({ id: Date.now(), title: '', done: false });
+  if (!todo.subtasks) todo.subtasks = [];
+  todo.subtasks.push({ id: Date.now(), title: '', due_date: null, done: false });
 
-    render();
-    
-    // Fokus auf neues Feld setzen
-    setTimeout(() => {
-      const container = document.getElementById(`subtasks-container-${id}`);
-      if (container) {
-        const inputs = container.querySelectorAll('input[type="text"]');
-        if (inputs.length > 0) {
-          inputs[inputs.length - 1].focus();
-        }
+  render();
+  
+  setTimeout(() => {
+    const container = document.getElementById(`subtasks-container-${id}`);
+    if (container) {
+      const inputs = container.querySelectorAll('input[type="text"]');
+      if (inputs.length > 0) {
+        inputs[inputs.length - 1].focus();
       }
-    }, 50);
+    }
+  }, 50);
 
-    await saveSubtasks(id);
+  await saveSubtasks(id);
+}
+
+async function updateSubtaskDueDate(todoId, subtaskId, newDate) {
+  const todo = todos.find(t => t.id === todoId);
+  if (!todo) return;
+
+  const sub = todo.subtasks.find(s => s.id === subtaskId);
+  if (sub) {
+    sub.due_date = newDate || null;
+    await saveSubtasks(todoId);
   }
+}
 
   async function toggleSubtaskDone(todoId, subtaskId) {
     const todo = todos.find(t => t.id === todoId);
@@ -1123,20 +1341,29 @@
     const query = searchInput.value.toLowerCase().trim();
 
     let filtered = todos.filter(t => {
-      let matchFilter = false;
-      if (currentFilter === 'Alle') matchFilter = true;
-      else if (currentFilter === 'Next') matchFilter = !!t.is_next;
-      else matchFilter = t.status === currentFilter;
+  let matchFilter = false;
+  if (currentFilter === 'Alle') matchFilter = true;
+  else if (currentFilter === 'Next') matchFilter = !!t.is_next;
+  else matchFilter = t.status === currentFilter;
 
-      const subMatch = t.subtasks && t.subtasks.some(s => s.title.toLowerCase().includes(query));
+  // Suche in Unteraufgaben
+  const subMatch = t.subtasks && t.subtasks.some(s => s.title.toLowerCase().includes(query));
 
-      const matchSearch = !query || 
-        t.title.toLowerCase().includes(query) || 
-        (t.note && t.note.toLowerCase().includes(query)) ||
-        subMatch;
+  // Suche nach System-ID (#1042 oder 1042)
+  const idMatch = `#${t.id}`.includes(query) || t.id.toString().includes(query);
 
-      return matchFilter && matchSearch;
-    });
+  // Suche nach individueller Auftragsnummer
+  const orderNumMatch = t.order_number && t.order_number.toLowerCase().includes(query);
+
+  const matchSearch = !query || 
+    t.title.toLowerCase().includes(query) || 
+    (t.note && t.note.toLowerCase().includes(query)) ||
+    subMatch ||
+    idMatch ||
+    orderNumMatch;
+
+  return matchFilter && matchSearch;
+});
 
     const prioOrder = { 'Hoch': 1, 'Mittel': 2, 'Niedrig': 3 };
     const statusOrder = { 'Offen': 1, 'In Arbeit': 2, 'Erledigt': 3 };
@@ -1213,89 +1440,115 @@
       const isEditingSubtasks = editingSubtaskIds.has(todo.id);
 
       tr.innerHTML = `
-        <td style="text-align: center;">
-          <button class="btn-star ${todo.is_next ? 'starred' : ''}" onclick="toggleStar(${todo.id})" title="Als Nächstes erledigen">
-            ${todo.is_next ? '★' : '☆'}
-          </button>
-        </td>
-        <td>
-          <select onchange="updateStatus(${todo.id}, this.value)">
-            <option value="Offen" ${todo.status === 'Offen' ? 'selected' : ''}>Offen</option>
-            <option value="In Arbeit" ${todo.status === 'In Arbeit' ? 'selected' : ''}>In Arbeit</option>
-            <option value="Erledigt" ${todo.status === 'Erledigt' ? 'selected' : ''}>Erledigt</option>
-          </select>
-        </td>
-        <td>
-          <div style="display: flex; align-items: flex-start; gap: 6px;">
-            <button class="btn-subtask-toggle ${isEditingSubtasks ? 'active' : ''}" onclick="toggleSubtaskEditMode(${todo.id})" title="${isEditingSubtasks ? 'Bearbeitung schliessen' : 'Unteraufgaben bearbeiten'}">
-              📋
-            </button>
-            <div style="flex-grow: 1;">
-              <textarea class="auto-textarea task-title-input" rows="1" oninput="autoResize(this)" onblur="updateTitle(${todo.id}, this.value)">${escapeHtml(todo.title)}</textarea>
-              
-              ${totalSub > 0 ? `
-                <span class="subtask-pill ${isAllDone ? 'all-done' : 'pending'}">
-                  ${isAllDone ? '✔' : '📋'} ${doneSub}/${totalSub}
-                </span>
-              ` : ''}
-            </div>
-          </div>
+  <!-- 1. Spalte: Star / Next -->
+  <td style="text-align: center;">
+    <button class="btn-star ${todo.is_next ? 'starred' : ''}" onclick="toggleStar(${todo.id})" title="Als Nächstes erledigen">
+      ${todo.is_next ? '★' : '☆'}
+    </button>
+  </td>
 
-          <!-- Unteraufgaben Liste (Standard = Leseansicht, Editieren = Bearbeitungsmodus) -->
-          ${(totalSub > 0 || isEditingSubtasks) ? `
-            <div class="subtasks-container ${isEditingSubtasks ? 'editing-mode' : ''}" id="subtasks-container-${todo.id}">
-              ${subtasks.map(s => `
-                <div class="subtask-item ${s.done ? 'completed' : ''}">
-                  <input type="checkbox" ${s.done ? 'checked' : ''} onchange="toggleSubtaskDone(${todo.id}, ${s.id})">
-                  
-                  ${isEditingSubtasks ? `
-                    <input type="text" value="${escapeHtml(s.title)}" placeholder="Unteraufgabe..." onblur="updateSubtaskTitle(${todo.id}, ${s.id}, this.value)">
-                    <button class="btn-subtask-del" onclick="deleteSubtask(${todo.id}, ${s.id})">✕</button>
-                  ` : `
-                    <span class="subtask-text-view">${escapeHtml(s.title)}</span>
-                  `}
-                </div>
-              `).join('')}
+  <!-- 2. Spalte: Status & Info-Button -->
+  <td>
+    <select onchange="updateStatus(${todo.id}, this.value)">
+      <option value="Offen" ${todo.status === 'Offen' ? 'selected' : ''}>Offen</option>
+      <option value="In Arbeit" ${todo.status === 'In Arbeit' ? 'selected' : ''}>In Arbeit</option>
+      <option value="Erledigt" ${todo.status === 'Erledigt' ? 'selected' : ''}>Erledigt</option>
+    </select>
+    <br>
+    <button class="btn-info-pop" onclick="showInfoModal(${todo.id}, '${todo.created_at}', '${todo.order_number || ''}')" title="Info & Auftragsnummer">
+      ℹ️ ${todo.order_number ? todo.order_number : '#' + todo.id}
+    </button>
+  </td>
 
-              ${isEditingSubtasks ? `
-                <button class="btn-add-subtask" onclick="addSubtask(${todo.id})">+ Unteraufgabe hinzufügen</button>
-              ` : ''}
-            </div>
-          ` : ''}
-        </td>
-        <td>
-          <textarea class="auto-textarea note-input" placeholder="Notiz..." rows="1" oninput="autoResize(this)" onblur="updateNote(${todo.id}, this.value)">${escapeHtml(todo.note || '')}</textarea>
-        </td>
-        <td>
-          <div class="date-cell-wrapper ${highlightClass}">
-            <select class="date-type-select" onchange="switchDateTypeInTable(${todo.id}, this.value)">
-              <option value="date" ${!isWeekMode ? 'selected' : ''}>📅 Datum</option>
-              <option value="week" ${isWeekMode ? 'selected' : ''}>🗓️ KW</option>
-            </select>
-            ${!isWeekMode ? `
-              <input type="date" class="date-table-input" value="${todo.due_date && !todo.due_date.includes('-W') ? todo.due_date : ''}" onchange="updateDueDate(${todo.id}, this.value)">
+  <!-- 3. Spalte: Aufgabe / Unteraufgaben -->
+  <td>
+    <div style="display: flex; align-items: flex-start; gap: 6px;">
+      <button class="btn-subtask-toggle ${isEditingSubtasks ? 'active' : ''}" onclick="toggleSubtaskEditMode(${todo.id})" title="${isEditingSubtasks ? 'Bearbeitung schliessen' : 'Unteraufgaben bearbeiten'}">
+        📋
+      </button>
+      <div style="flex-grow: 1;">
+        <textarea class="auto-textarea task-title-input" rows="1" oninput="autoResize(this)" onblur="updateTitle(${todo.id}, this.value)">${escapeHtml(todo.title)}</textarea>
+        
+        ${totalSub > 0 ? `
+          <span class="subtask-pill ${isAllDone ? 'all-done' : 'pending'}">
+            ${isAllDone ? '✔' : '📋'} ${doneSub}/${totalSub}
+          </span>
+        ` : ''}
+      </div>
+    </div>
+
+    <!-- Unteraufgaben Liste -->
+    ${(totalSub > 0 || isEditingSubtasks) ? `
+      <div class="subtasks-container ${isEditingSubtasks ? 'editing-mode' : ''}" id="subtasks-container-${todo.id}">
+        ${subtasks.map(s => `
+          <div class="subtask-item ${s.done ? 'completed' : ''}">
+            <input type="checkbox" ${s.done ? 'checked' : ''} onchange="toggleSubtaskDone(${todo.id}, ${s.id})">
+            
+            ${isEditingSubtasks ? `
+              <input type="text" value="${escapeHtml(s.title)}" placeholder="Unteraufgabe..." onblur="updateSubtaskTitle(${todo.id}, ${s.id}, this.value)">
+              <input type="date" class="subtask-date-input" value="${s.due_date || ''}" onchange="updateSubtaskDueDate(${todo.id}, ${s.id}, this.value)">
+              <button class="btn-subtask-del" onclick="deleteSubtask(${todo.id}, ${s.id})">✕</button>
             ` : `
-              <input type="week" class="date-table-input" value="${weekInputValue}" onchange="updateDueDate(${todo.id}, this.value)">
+              <span class="subtask-text-view">${escapeHtml(s.title)}</span>
+              ${s.due_date ? `<span class="subtask-date-badge">${formatDate(s.due_date)}</span>` : ''}
             `}
           </div>
-        </td>
-        <td><span class="created-date">${formatDate(todo.created_at)}</span></td>
-        <td>
-          <select class="prio-select-table" onchange="updatePrio(${todo.id}, this.value)">
-            <option value="Niedrig" ${todo.prio === 'Niedrig' ? 'selected' : ''}>🟢 Niedrig</option>
-            <option value="Mittel" ${todo.prio === 'Mittel' ? 'selected' : ''}>🟡 Mittel</option>
-            <option value="Hoch" ${todo.prio === 'Hoch' ? 'selected' : ''}>🔴 Hoch</option>
-          </select>
-        </td>
-        <td><button class="btn-delete" onclick="deleteTodo(${todo.id})">🗑️</button></td>
-      `;
-      todoList.appendChild(tr);
-    });
+        `).join('')}
 
-    setTimeout(() => {
-      document.querySelectorAll('.auto-textarea').forEach(el => autoResize(el));
-    }, 0);
-  }
+        ${isEditingSubtasks ? `
+          <button class="btn-add-subtask" onclick="addSubtask(${todo.id})">+ Unteraufgabe hinzufügen</button>
+        ` : ''}
+      </div>
+    ` : ''}
+  </td>
+
+  <!-- 4. Spalte: Notiz / Details -->
+  <td>
+    <textarea class="auto-textarea note-input" placeholder="Notiz..." rows="1" oninput="autoResize(this)" onblur="updateNote(${todo.id}, this.value)">${escapeHtml(todo.note || '')}</textarea>
+  </td>
+
+  <!-- 5. Spalte: Termin / KW -->
+  <td>
+    <div class="date-cell-wrapper ${highlightClass}">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 3px;">
+        <select class="date-type-select" onchange="switchDateTypeInTable(${todo.id}, this.value)">
+          <option value="date" ${!isWeekMode ? 'selected' : ''}>📅 Datum</option>
+          <option value="week" ${isWeekMode ? 'selected' : ''}>🗓️ KW</option>
+        </select>
+        ${todo.due_date ? `
+          <button class="btn-clear-date" onclick="clearDueDate(${todo.id})" title="Termin entfernen">✕</button>
+        ` : ''}
+      </div>
+      ${!isWeekMode ? `
+        <input type="date" class="date-table-input" value="${todo.due_date && !todo.due_date.includes('-W') ? todo.due_date : ''}" onchange="updateDueDate(${todo.id}, this.value)">
+      ` : `
+        <input type="week" class="date-table-input" value="${weekInputValue}" onchange="updateDueDate(${todo.id}, this.value)">
+      `}
+    </div>
+  </td>
+
+  <!-- 6. Spalte: Prio (jetzt in einer eigenen Zelle!) -->
+  <td>
+    <select class="prio-select-table" onchange="updatePrio(${todo.id}, this.value)">
+      <option value="Niedrig" ${todo.prio === 'Niedrig' ? 'selected' : ''}>🟢 Niedrig</option>
+      <option value="Mittel" ${todo.prio === 'Mittel' ? 'selected' : ''}>🟡 Mittel</option>
+      <option value="Hoch" ${todo.prio === 'Hoch' ? 'selected' : ''}>🔴 Hoch</option>
+    </select>
+  </td>
+
+  <!-- 7. Spalte: Löschen -->
+  <td style="text-align: center;">
+    <button class="btn-delete" onclick="deleteTodo(${todo.id})">🗑️</button>
+  </td>
+`;
+
+todoList.appendChild(tr);
+});
+
+setTimeout(() => {
+  document.querySelectorAll('.auto-textarea').forEach(el => autoResize(el));
+}, 0);
+}
 
   function switchDateTypeInTable(id, type) {
     rowDateModes[id] = type;
