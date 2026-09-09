@@ -258,6 +258,56 @@
     background: #e2e8ed;
   }
 
+  /* Styling für den Kompakt-Button */
+.btn-compact {
+  background: #eef2f5;
+  color: #333;
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-compact.active {
+  background: #333;
+  color: #fff;
+  border-color: #333;
+}
+
+/* --- KOMPAKT-MODUS REGELN --- */
+/* Reduziert die Abstände in den Zeilen */
+body.compact-mode tr.main-row td {
+  padding: 3px 6px !important;
+}
+
+/* Blendet Notiz-Spalte (4. Spalte) in Header und Tabelle aus */
+body.compact-mode table th:nth-child(4),
+body.compact-mode table td:nth-child(4) {
+  display: none;
+}
+
+/* Blendet Unteraufgaben im Tabellenkörper aus, zeigt aber das Icon/Badge an */
+body.compact-mode .subtasks-container {
+  display: none !important;
+}
+
+/* Macht die Eingabefelder im Kompaktmodus flacher */
+body.compact-mode .auto-textarea {
+  min-height: 20px;
+  padding: 2px 4px;
+  font-size: 0.82rem;
+}
+
+body.compact-mode .btn-info-pop {
+  margin-top: 1px;
+  padding: 1px 4px;
+  font-size: 0.72rem;
+}
+
+  
   .btn-clean {
     background: #fdf2f2;
     color: #d32f2f;
@@ -817,6 +867,9 @@ table {
     </div>
 
     <div class="right-controls">
+      <button type="button" id="btn-toggle-compact" class="btn-compact" onclick="toggleCompactView()" title="Kompakt-Ansicht umschalten">
+    ↕️ Kompakt
+      </button>
       <button type="button" class="btn-refresh" onclick="fetchTodos()" title="Daten neu laden">🔄 Aktualisieren</button>
       <input type="text" id="search-input" class="search-input" placeholder="🔍 Suchen..." oninput="render()">
       <button class="btn-clean" onclick="cleanCompleted()">🧹 Erledigte aufräumen</button>
@@ -1581,6 +1634,30 @@ setTimeout(() => {
   function escapeHtml(text) {
     return text ? text.replace(/[&<>"']/g, function(m) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]; }) : '';
   }
+
+  // Statusvariable (wird beim Start aus dem LocalStorage geladen)
+let isCompactView = localStorage.getItem('planer_compact_mode') === 'true';
+
+// Beim Laden der Seite den Zustand wiederherstellen
+document.addEventListener('DOMContentLoaded', () => {
+  if (isCompactView) {
+    document.body.classList.add('compact-mode');
+    const btn = document.getElementById('btn-toggle-compact');
+    if (btn) btn.classList.add('active');
+  }
+});
+
+// Umschalt-Funktion
+function toggleCompactView() {
+  isCompactView = !isCompactView;
+  document.body.classList.toggle('compact-mode', isCompactView);
+  
+  const btn = document.getElementById('btn-toggle-compact');
+  if (btn) btn.classList.toggle('active', isCompactView);
+
+  localStorage.setItem('planer_compact_mode', isCompactView);
+}
+
 </script>
 
 </body>
