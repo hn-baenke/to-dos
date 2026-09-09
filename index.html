@@ -242,6 +242,22 @@
     border-radius: 20px;
   }
 
+    .btn-refresh {
+    background: #eef2f5;
+    color: #333;
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+  }
+
+  .btn-refresh:hover {
+    background: #e2e8ed;
+  }
+
   .btn-clean {
     background: #fdf2f2;
     color: #d32f2f;
@@ -801,6 +817,7 @@ table {
     </div>
 
     <div class="right-controls">
+      <button type="button" class="btn-refresh" onclick="fetchTodos()" title="Daten neu laden">🔄 Aktualisieren</button>
       <input type="text" id="search-input" class="search-input" placeholder="🔍 Suchen..." oninput="render()">
       <button class="btn-clean" onclick="cleanCompleted()">🧹 Erledigte aufräumen</button>
     </div>
