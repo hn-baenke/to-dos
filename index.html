@@ -759,6 +759,73 @@ table {
   opacity: 0.7;
 }
 
+/* =========================================================
+   SPEZIELLER MOBIL-FIX FÜR TELEFONLISTE & FIRMENLISTE
+   ========================================================= */
+@media (max-width: 650px) {
+  /* Tabellenköpfe ausblenden */
+  #telefonliste-table thead,
+  #firmenliste-table thead {
+    display: none !important;
+  }
+
+  /* Tabelle & Inhalt strikt als Block-Elemente ohne Positionierungs-Tricks */
+  #telefonliste-table, 
+  #firmenliste-table,
+  #telefonliste-tbody, 
+  #firmenliste-tbody,
+  #telefonliste-tbody tr, 
+  #firmenliste-tbody tr,
+  #telefonliste-tbody td, 
+  #firmenliste-tbody td {
+    display: block !important;
+    width: 100% !important;
+    position: static !important; /* Aufhebung von position: absolute/relative */
+    box-sizing: border-box !important;
+  }
+
+  /* Karten-Design für die Zeilen */
+  #telefonliste-tbody tr,
+  #firmenliste-tbody tr.main-row {
+    margin-bottom: 12px !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04) !important;
+  }
+
+  /* Alle Datenfelder sauber im Fluss untereinander */
+  #telefonliste-tbody td,
+  #firmenliste-tbody td {
+    padding: 4px 0 !important;
+    border: none !important;
+    text-align: left !important;
+    word-break: break-word !important;
+  }
+
+  /* Name hervorheben */
+  #telefonliste-tbody td:first-child {
+    font-weight: bold !important;
+    font-size: 1.05rem !important;
+    color: #2d3748 !important;
+    margin-bottom: 4px !important;
+  }
+
+  /* Aktions-Buttons sauber unten in der Karte trennen */
+  #telefonliste-tbody td:last-child,
+  #firmenliste-tbody tr.main-row td:last-child {
+    margin-top: 8px !important;
+    padding-top: 8px !important;
+    border-top: 1px dashed #cbd5e0 !important;
+  }
+
+  #telefonliste-tbody td:last-child > div,
+  #firmenliste-tbody tr.main-row td:last-child > div {
+    justify-content: flex-end !important;
+  }
+}
+
 </style>
 </head>
 <body>
