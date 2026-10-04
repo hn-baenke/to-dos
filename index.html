@@ -826,6 +826,73 @@ table {
   }
 }
 
+/* Animation & Optik für neu erstellte Aufgaben */
+.new-task-highlight {
+  border: 2px solid #22c55e !important; /* Grüner Rahmen */
+  background-color: #f0fdf4 !important; /* Ganz leichtes Hellgrün */
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.25) !important;
+  position: relative;
+  transition: all 0.4s ease-in-out;
+}
+
+/* Optional: Ein kleines "NEU"-Badge oben rechts auf der Karte */
+.new-task-highlight::after {
+  content: "NEU";
+  position: absolute;
+  top: -10px;
+  right: 12px;
+  background: #22c55e;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 12px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+tr.new-task-highlight td {
+  background-color: #f0fdf4 !important; /* leichtes Grün für die Tabellenzellen */
+  border-top: 2px solid #22c55e !important;
+  border-bottom: 2px solid #22c55e !important;
+}
+
+tr.new-task-highlight td:first-child {
+  border-left: 2px solid #22c55e !important;
+}
+
+tr.new-task-highlight td:last-child {
+  border-right: 2px solid #22c55e !important;
+}
+
+/* Das abgedunkelte Overlay im Hintergrund */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Das weiße Modal-Fenster selbst */
+.modal-content {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  width: 100%;
+  max-width: 550px;
+  max-height: 85vh; /* Verhindert, dass es höher als der Bildschirm wird */
+  overflow-y: auto; /* Aktiviert das Scrollen im Modal */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
 </style>
 </head>
 <body>
@@ -884,31 +951,94 @@ table {
       </div>
     </div>
 
-    <!-- Formular für Aufgaben -->
-    <form class="add-form" id="todo-form">
-      <input type="text" id="task-input" placeholder="Neue Aufgabe..." required>
-      <input type="text" id="note-input-add" placeholder="Notiz (z.B. Material bestellt)...">
-      
-      <select id="date-type-add" onchange="toggleDateInputAdd()">
-        <option value="date">📅 Datum</option>
-        <option value="week">🗓️ KW</option>
-      </select>
-      
-      <input type="date" id="due-date-add" title="Genaue Fälligkeit">
-      <input type="week" id="due-week-add" style="display:none;" title="Kalenderwoche">
+    <!-- Button anstelle der alten Eingabezeile -->
+<div style="margin-bottom: 15px;">
+  <button type="button" onclick="openAddTaskModal()" style="background: #3f7a44; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+    + Aufgabe hinzufügen
+  </button>
+</div>
 
-      <select id="prio-select">
-        <option value="Niedrig">🟢 Niedrig</option>
-        <option value="Mittel" selected>🟡 Mittel</option>
-        <option value="Hoch">🔴 Hoch</option>
-      </select>
-      <select id="status-select">
-        <option value="Offen">Offen</option>
-        <option value="In Arbeit">In Arbeit</option>
-        <option value="Erledigt">Erledigt</option>
-      </select>
-      <button type="submit" class="btn-add">+ Hinzufügen</button>
+<!-- Modal Overlay für NEUE Aufgabe -->
+<div id="modal-add-task" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+  <div class="modal-content" style="background: white; border-radius: 8px; padding: 20px; width: 90%; max-width: 550px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
+      <h3 style="margin: 0; font-size: 1.15rem; color: #1e293b;">Neue Aufgabe erstellen</h3>
+      <button type="button" onclick="closeAddTaskModal()" style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #64748b;">&times;</button>
+    </div>
+
+    <form onsubmit="saveTaskFromModal(event)">
+      <!-- 1. Aufgaben-Beschreibung -->
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">Aufgaben-Beschreibung *</label>
+        <input type="text" id="task-modal-title" required placeholder="z. B. Bretter Berufsschule" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 0.9rem;">
+      </div>
+
+      <!-- 2. Aufgaben-Art / Auftragsnummer -->
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">Aufgaben-Art / Auftragsnr.</label>
+        <input type="text" id="task-modal-order" placeholder="z. B. Bänke / Kiga / 26HS1010" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 0.9rem;">
+      </div>
+
+      <!-- 3. Termin (Datum vs KW) & 4. Priorität -->
+      <div style="display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+        <!-- Termin -->
+        <div style="flex: 1.2; min-width: 200px;">
+          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">Termin</label>
+          <div style="display: flex; gap: 6px;">
+            <select id="task-modal-date-type" onchange="toggleModalDateType()" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;">
+              <option value="date">📅 Datum</option>
+              <option value="week">🗓 KW</option>
+            </select>
+            <input type="date" id="task-modal-due-date" style="flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; display: block;">
+            <input type="week" id="task-modal-due-week" style="flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; display: none;">
+          </div>
+        </div>
+
+        <!-- Priorität -->
+        <div style="flex: 0.8; min-width: 140px;">
+          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">Priorität</label>
+          <select id="task-modal-prio" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;">
+            <option value="Hoch">🔴 Hoch</option>
+            <option value="Mittel" selected>🟡 Mittel</option>
+            <option value="Niedrig">🟢 Niedrig</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 5. Unteraufgaben Container -->
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Unteraufgaben</span>
+          <button type="button" onclick="addTaskSubtaskRow()" style="background: #ffffff; border: 1px solid #cbd5e1; color: #3f7a44; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+            + Unteraufgabe hinzufügen
+          </button>
+        </div>
+        <div id="task-modal-subtasks-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+      </div>
+
+      <!-- 6. Notiz -->
+      <div style="margin-bottom: 14px;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">Notiz</label>
+        <textarea id="task-modal-note" placeholder="z. B. Material in Halle 5, Holz bestellt" rows="2" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 0.9rem; resize: vertical;"></textarea>
+      </div>
+
+      <!-- 7. Favorit Checkbox -->
+      <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="task-modal-is-next" style="width: 18px; height: 18px; cursor: pointer;">
+        <label for="task-modal-is-next" style="font-size: 0.9rem; color: #334155; cursor: pointer; font-weight: 500;">
+          ★ Als Nächstes erledigen (Favorit)
+        </label>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+        <button type="button" onclick="closeAddTaskModal()" style="padding: 8px 16px; border: 1px solid #cbd5e1; background: #ffffff; border-radius: 6px; cursor: pointer; color: #475569;">Abbrechen</button>
+        <button type="submit" style="padding: 8px 18px; border: none; background: #3f7a44; color: white; border-radius: 6px; font-weight: 600; cursor: pointer;">Aufgabe speichern</button>
+      </div>
     </form>
+  </div>
+</div>
 
     <!-- Steuerung: Filter, Suche & Aufräumen -->
     <div class="controls-bar">
@@ -918,6 +1048,7 @@ table {
         <button class="filter-btn" id="filter-btn-Offen" onclick="setFilter('Offen', this)">Offen</button>
         <button class="filter-btn" id="filter-btn-In Arbeit" onclick="setFilter('In Arbeit', this)">In Arbeit</button>
         <button class="filter-btn" id="filter-btn-Erledigt" onclick="setFilter('Erledigt', this)">Erledigt</button>
+        <button class="filter-btn" id="btn-sort-oldest" onclick="sortByOldest()">⏳ Älteste zuerst</button>
       </div>
 
       <div class="right-controls">
@@ -972,84 +1103,249 @@ table {
   </div>
 
   <!-- CONTAINER 3: Telefonliste -->
-  <div id="tab-telefonliste" class="tab-content" style="display: none;">
-    <!-- Formular Kontakt hinzufügen -->
-    <div class="add-form" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">
-      <input type="text" id="phone-name" placeholder="Name *" style="flex: 1.5; min-width: 150px;" required>
-      <input type="text" id="phone-tele" placeholder="Tele (Festnetz)" style="flex: 1.2; min-width: 130px;">
-      <input type="text" id="phone-mobil" placeholder="Mobil" style="flex: 1.2; min-width: 130px;">
-      <input type="email" id="phone-email" placeholder="e-Mail" style="flex: 1.5; min-width: 160px;">
-      <input type="text" id="phone-amt" placeholder="Amt / Abteilung (z.B. Bauamt)" style="flex: 1.5; min-width: 150px;">
-      <button type="button" class="btn-add" onclick="addPhoneContact()">+ Kontakt</button>
-    </div>
+<div id="tab-telefonliste" class="tab-content" style="display: none;">
 
-    <!-- Suche in Telefonliste -->
-    <div class="controls-bar" style="justify-content: flex-end; margin-bottom: 10px;">
-      <input type="text" id="search-phone" class="search-input" placeholder="🔍 Telefonliste suchen..." oninput="renderPhoneList()">
-    </div>
-
-    <!-- Tabelle Telefonliste -->
-    <table>
-      <thead>
-        <tr>
-          <th style="width: 25%;">Name</th>
-          <th style="width: 18%;">Tele</th>
-          <th style="width: 18%;">Mobil</th>
-          <th style="width: 22%;">e-Mail</th>
-          <th style="width: 17%;">Amt</th>
-          <th style="width: 35px; text-align: center;"></th>
-        </tr>
-      </thead>
-      <tbody id="telefonliste-tbody"></tbody>
-    </table>
+  <!-- Aktionsleiste: Suche & Hinzufügen-Button -->
+  <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 15px;">
+    <input 
+      type="text" 
+      id="search-phone" 
+      placeholder="🔍 Name, Telefon, Amt oder Bereich suchen..." 
+      oninput="renderPhoneList()"
+      style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; width: 320px; font-size: 14px;"
+    >
+    <button 
+      onclick="openPhoneModal()" 
+      style="background: #2e7d32; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;"
+    >
+      + Kontakt hinzufügen
+    </button>
   </div>
 
-  <!-- CONTAINER 4: Firmenliste -->
-  <div id="tab-firmenliste" class="tab-content" style="display: none;">
-    <!-- Formular Firma hinzufügen -->
-    <div class="add-form" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">
-      <input type="text" id="company-name" placeholder="Firma *" style="flex: 2; min-width: 200px;" required>
-      <input type="text" id="company-kdnr" placeholder="Kunden Nr." style="flex: 1; min-width: 140px;">
-      <button type="button" class="btn-add" onclick="addCompany()">+ Firma hinzufügen</button>
-    </div>
+  <!-- Modal für Telefonkontakt -->
+  <div id="phone-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:1000;">
+    <div style="background:white; padding:20px; border-radius:8px; width:420px; max-width:90%; box-sizing:border-box;">
+      <h3 id="modal-phone-title" style="margin-top:0;">📞 Kontakt</h3>
+      <input type="hidden" id="modal-phone-id">
 
-    <!-- Suche in Firmenliste -->
-    <div class="controls-bar" style="justify-content: flex-end; margin-bottom: 10px;">
+      <label style="display:block; margin-top:10px; font-weight:600; font-size:13px;">Name:</label>
+      <input type="text" id="modal-phone-name" style="width:100%; padding:6px 8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+
+      <label style="display:block; margin-top:10px; font-weight:600; font-size:13px;">Oberkategorie: *</label>
+<select id="modal-phone-category" onchange="updateSubcategoryDropdown()" required style="width:100%; padding:6px 8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+  <option value="" disabled selected>-- Bitte Oberkategorie wählen --</option>
+  <option value="Betriebsamt 68 Intern">Betriebsamt 68 Intern</option>
+  <option value="Stadt Heilbronn Extern">Stadt Heilbronn Extern</option>
+  <option value="Notfall / Wichtig">Notfall / Wichtig</option>
+</select>
+
+<label style="display:block; margin-top:10px; font-weight:600; font-size:13px;">Amt / Unterkategorie: *</label>
+<select id="modal-phone-amt-select" onchange="handleSubcategoryChange()" required style="width:100%; padding:6px 8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+  <option value="" disabled selected>-- Bitte zuerst Oberkategorie wählen --</option>
+</select>
+
+      <!-- Feld für neue Unterkategorie + Kürzel Dropdown -->
+      <div id="modal-phone-amt-custom-container" style="display: none; margin-top: 8px;">
+        <label style="display: block; font-size: 12px; color: #555; margin-bottom: 4px;">Neue Unterkategorie & Kürzel:</label>
+        <div style="display: flex; gap: 8px; width: 100%; box-sizing: border-box; align-items: center;">
+          <!-- Textfeld LINKS -->
+          <input 
+            type="text" 
+            id="modal-phone-amt-custom" 
+            placeholder="z. B. Tiefbau" 
+            style="flex: 1; min-width: 0; padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;"
+          >
+          <!-- Dropdown RECHTS -->
+          <select 
+            id="modal-phone-amt-suffix" 
+            style="width: 120px; flex-shrink: 0; padding: 6px; border: 1px solid #ccc; border-radius: 4px; background: #fff; cursor: pointer; box-sizing: border-box;"
+          >
+            <option value="">(kein Kürzel)</option>
+            <option value=" Abt H">Abt H</option>
+            <option value=" Abt G">Abt G</option>
+            <option value=" Abt T">Abt T</option>
+          </select>
+        </div>
+      </div>
+
+      <label style="display:block; margin-top:10px; font-weight:600; font-size:13px;">Festnetz / Kurzwahl:</label>
+      <input type="text" id="modal-phone-tele" style="width:100%; padding:6px 8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+
+      <label style="display:block; margin-top:10px; font-weight:600; font-size:13px;">Mobil:</label>
+      <input type="text" id="modal-phone-mobil" style="width:100%; padding:6px 8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+
+      <label style="display:block; margin-top:10px; font-weight:600; font-size:13px;">E-Mail:</label>
+      <input type="email" id="modal-phone-email" style="width:100%; padding:6px 8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+
+      <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+        <button type="button" onclick="closePhoneModal()" style="padding:8px 14px; border:1px solid #ccc; border-radius:4px; background:#fff; cursor:pointer;">Abbrechen</button>
+        <button type="button" onclick="savePhoneContactFromModal(event)" style="background:#2e7d32; color:white; border:none; padding:8px 14px; border-radius:4px; cursor:pointer; font-weight:bold;">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabelle Telefonliste -->
+  <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+    <thead>
+  <tr>
+    <th style="text-align: left; padding: 10px; width: 25%;">NAME</th>
+    <th style="text-align: left; padding: 10px; width: 15%;">TELE</th>
+    <th style="text-align: left; padding: 10px; width: 17%;">MOBIL</th>
+    <th style="text-align: left; padding: 10px; width: 35%;">E-MAIL</th>
+    <th style="text-align: center; padding: 10px; width: 8%;">AKTIONEN</th>
+  </tr>
+</thead>
+    <tbody id="telefonliste-tbody"></tbody>
+  </table>
+
+</div> <!-- Ende Telefonliste-Tab -->
+
+  <!-- ========================================== -->
+  <!-- TAB: FIRMENLISTE                           -->
+  <!-- ========================================== -->
+  <div id="tab-firmen" class="tab-content" style="display: none;">
+
+    <!-- Aktionsleiste oben: Button & Suchfeld -->
+    <div class="controls-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      <!-- Button links -->
+      <button type="button" class="btn-add-company" onclick="openAddCompanyModal()" style="background-color: #3f7a44; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+        + Firma hinzufügen
+      </button>
+
+      <!-- Suche rechts -->
       <input type="text" id="search-company" class="search-input" placeholder="🔍 Firmen oder Ansprechpartner suchen..." oninput="renderCompanyList()">
     </div>
 
     <!-- Tabelle Firmenliste -->
-    <table>
+    <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
       <thead>
         <tr>
-          <th style="width: 40%;">Firma</th>
-          <th style="width: 30%;">Kunden Nr.</th>
-          <th style="width: 30%;">Ansprechpartner</th>
-          <th style="width: 35px; text-align: center;"></th>
+          <th style="width: 25%; text-align: left; padding: 8px;">FIRMA</th>
+          <th style="width: 15%; text-align: left; padding: 8px;">KUNDEN NR.</th>
+          <th style="text-align: left; padding: 8px;">KONTAKT</th>
+          <th style="width: 80px; text-align: center; padding: 8px;"></th>
         </tr>
       </thead>
-      <tbody id="firmenliste-tbody"></tbody>
+      <tbody id="firmenliste-tbody">
+        <!-- Hier werden die Zeilen gerendert -->
+      </tbody>
     </table>
+
+  </div> <!-- Ende Firmenliste-Tab -->
+
+
+<!-- ========================================== -->
+<!-- MODAL: Firma hinzufügen / bearbeiten       -->
+<!-- ========================================== -->
+<div id="modal-add-company" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: #ffffff; width: 100%; max-width: 520px; border-radius: 12px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative;">
+    
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+      <h3 id="modal-company-title" style="margin: 0; font-size: 1.25rem; color: #1e293b;">Neue Firma hinzufügen</h3>
+      <button type="button" onclick="closeAddCompanyModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;">&times;</button>
+    </div>
+
+    <!-- Formular -->
+<form onsubmit="saveNewCompany(event)">
+  <!-- Versteckte ID für Bearbeiten-Modus -->
+  <input type="hidden" id="modal-company-id">
+
+  <!-- Firmendaten -->
+  <div style="margin-bottom: 12px;">
+    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">Firmenname *</label>
+    <input type="text" id="modal-company-name" required placeholder="z. B. Mustermann GmbH" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
   </div>
 
-</div>
-
-<!-- MODAL: Gewerk-Auswahl beim ersten Start -->
-<div id="gewerk-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center;">
-  <div style="background: white; padding: 25px; border-radius: 12px; text-align: center; max-width: 350px; width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-    <h2 style="margin-top: 0; font-size: 1.3rem;">Willkommen! 👋</h2>
-    <p style="color: #555; margin-bottom: 20px;">Bitte wähle dein Gewerk aus, um deine Aufgaben zu sehen:</p>
-    
-    <div style="display: flex; flex-direction: column; gap: 12px;">
-      <button type="button" onclick="selectGewerk('Zimmerer')" style="padding: 12px; font-size: 1.05rem; border: 2px solid #4e342e; background: #efebe9; border-radius: 8px; cursor: pointer; font-weight: bold; color: #4e342e;">
-        🪓 Zimmerer
-      </button>
-      <button type="button" onclick="selectGewerk('Schreiner')" style="padding: 12px; font-size: 1.05rem; border: 2px solid #0d47a1; background: #e3f2fd; border-radius: 8px; cursor: pointer; font-weight: bold; color: #0d47a1;">
-        🪚 Schreiner
-      </button>
+  <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+    <div style="flex: 1;">
+      <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">Kunden-Nr.</label>
+      <input type="text" id="modal-company-kdnr" placeholder="z. B. 12345" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+    </div>
+    <div style="flex: 1;">
+      <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">Zentrale Telefon-Nr.</label>
+      <input type="text" id="modal-company-phone" placeholder="z. B. 07131 123456" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
     </div>
   </div>
-</div>
+
+  <div style="margin-bottom: 16px;">
+    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">Zentrale E-Mail</label>
+    <input type="email" id="modal-company-email" placeholder="z. B. info@musterfirma.de" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+  </div>
+
+  <!-- Dynamic Ansprechpartner Container -->
+  <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">
+        Ansprechpartner
+      </span>
+      <button type="button" onclick="addContactRowToModal()" style="background: #ffffff; border: 1px solid #cbd5e1; color: #3f7a44; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+        + Ansprechpartner hinzufügen
+      </button>
+    </div>
+
+    <!-- Hier werden die Ansprechpartner-Zeilen dynamisch eingefügt -->
+    <div id="modal-contacts-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
+  </div>
+
+  <!-- Footer Buttons -->
+  <div style="display: flex; justify-content: flex-end; gap: 10px;">
+    <button type="button" onclick="closeAddCompanyModal()" style="padding: 8px 16px; border: 1px solid #cbd5e1; background: #ffffff; border-radius: 6px; cursor: pointer; color: #475569;">Abbrechen</button>
+    <button type="submit" style="padding: 8px 18px; border: none; background: #3f7a44; color: white; border-radius: 6px; font-weight: 600; cursor: pointer;">Firma speichern</button>
+  </div>
+</form>
+
+  <!-- Modal für Kontakt (Anlegen / Bearbeiten) -->
+  <div id="modal-add-contact" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="background: #ffffff; width: 100%; max-width: 420px; border-radius: 8px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); font-family: inherit;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 id="modal-contact-title" style="margin: 0; font-size: 1.1rem; color: #1a202c;">Kontakt bearbeiten</h3>
+        <button type="button" onclick="closeAddContactModal()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #718096;">✕</button>
+      </div>
+
+      <input type="hidden" id="modal-contact-company-id">
+      <input type="hidden" id="modal-contact-id">
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #4a5568; margin-bottom: 4px;">Name / Ansprechpartner</label>
+          <input type="text" id="modal-contact-name" placeholder="z. B. Max Mustermann" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box;">
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #4a5568; margin-bottom: 4px;">Telefon</label>
+          <input type="text" id="modal-contact-tele" placeholder="z. B. 07131 123456" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box;">
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #4a5568; margin-bottom: 4px;">E-Mail</label>
+          <input type="email" id="modal-contact-email" placeholder="z. B. m.mustermann@firma.de" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box;">
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+        <button type="button" onclick="closeAddContactModal()" style="background: #e2e8f0; color: #4a5568; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600;">Abbrechen</button>
+        <button type="button" onclick="saveModalContact()" style="background: #2b6cb0; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Gewerk-Auswahl beim ersten Start -->
+  <div id="gewerk-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 25px; border-radius: 12px; text-align: center; max-width: 350px; width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+      <h2 style="margin-top: 0; font-size: 1.3rem;">Willkommen! 👋</h2>
+      <p style="color: #555; margin-bottom: 20px;">Bitte wähle dein Gewerk aus, um deine Aufgaben zu sehen:</p>
+      
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <button type="button" onclick="selectGewerk('Zimmerer')" style="padding: 12px; font-size: 1.05rem; border: 2px solid #4e342e; background: #efebe9; border-radius: 8px; cursor: pointer; font-weight: bold; color: #4e342e;">
+          🪓 Zimmerer
+        </button>
+        <button type="button" onclick="selectGewerk('Schreiner')" style="padding: 12px; font-size: 1.05rem; border: 2px solid #0d47a1; background: #e3f2fd; border-radius: 8px; cursor: pointer; font-weight: bold; color: #0d47a1;">
+          🪚 Schreiner
+        </button>
+      </div>
+    </div>
+  </div>
 
 <script>
   const SUPABASE_URL = 'https://aqownulwmwdtrgzmsgqn.supabase.co';
@@ -1126,6 +1422,158 @@ table {
       }
     }
   }
+
+  // Modal öffnen
+function openAddTaskModal() {
+  document.getElementById('task-modal-title').value = '';
+  document.getElementById('task-modal-order').value = '';
+  document.getElementById('task-modal-note').value = '';
+  document.getElementById('task-modal-prio').value = 'Mittel';
+  document.getElementById('task-modal-is-next').checked = false;
+  
+  // Datum zurücksetzen
+  document.getElementById('task-modal-date-type').value = 'date';
+  document.getElementById('task-modal-due-date').value = '';
+  document.getElementById('task-modal-due-week').value = '';
+  toggleModalDateType();
+
+  // Unteraufgaben zurücksetzen
+  document.getElementById('task-modal-subtasks-container').innerHTML = '';
+
+  const modal = document.getElementById('modal-add-task');
+  if (modal) {
+    modal.style.display = 'flex';
+    document.getElementById('task-modal-title').focus();
+  }
+}
+
+// Modal schließen
+function closeAddTaskModal() {
+  const modal = document.getElementById('modal-add-task');
+  if (modal) modal.style.display = 'none';
+}
+
+// Umschalten Datum vs. KW im Modal
+function toggleModalDateType() {
+  const type = document.getElementById('task-modal-date-type').value;
+  const dateInput = document.getElementById('task-modal-due-date');
+  const weekInput = document.getElementById('task-modal-due-week');
+
+  if (type === 'date') {
+    dateInput.style.display = 'block';
+    weekInput.style.display = 'none';
+    weekInput.value = '';
+  } else {
+    dateInput.style.display = 'none';
+    weekInput.style.display = 'block';
+    dateInput.value = '';
+    if (!weekInput.value && typeof getDefaultWeekString === 'function') {
+      weekInput.value = getDefaultWeekString();
+    }
+  }
+}
+
+// Dynamische Zeile für Unteraufgabe im Modal hinzufügen
+function addTaskSubtaskRow() {
+  const container = document.getElementById('task-modal-subtasks-container');
+  if (!container) return;
+
+  const rowId = 'modal-subtask-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
+
+  const rowDiv = document.createElement('div');
+  rowDiv.id = rowId;
+  rowDiv.className = 'modal-subtask-row';
+  rowDiv.style.cssText = 'display: flex; gap: 8px; align-items: center; background: #ffffff; padding: 6px; border-radius: 6px; border: 1px solid #cbd5e1;';
+
+  rowDiv.innerHTML = `
+    <input type="text" class="modal-subtask-title" placeholder="Unteraufgabe Beschreibung..." style="flex: 2; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem;">
+    <input type="date" class="modal-subtask-date" style="flex: 1; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem;">
+    <button type="button" onclick="document.getElementById('${rowId}').remove()" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0 4px;" title="Entfernen">&times;</button>
+  `;
+
+  container.appendChild(rowDiv);
+  rowDiv.querySelector('.modal-subtask-title').focus();
+}
+
+// Aufgabe in Supabase speichern
+async function saveTaskFromModal(event) {
+  event.preventDefault();
+
+  const title = document.getElementById('task-modal-title').value.trim();
+  const orderNumber = document.getElementById('task-modal-order').value.trim();
+  const note = document.getElementById('task-modal-note').value.trim();
+  const prio = document.getElementById('task-modal-prio').value;
+  const isNext = document.getElementById('task-modal-is-next').checked;
+  const dateType = document.getElementById('task-modal-date-type').value;
+
+  let dueDateVal = null;
+  if (dateType === 'date') {
+    dueDateVal = document.getElementById('task-modal-due-date').value || null;
+  } else {
+    dueDateVal = document.getElementById('task-modal-due-week').value || null;
+  }
+
+  // Unteraufgaben auslesen
+  const subtaskRows = document.querySelectorAll('.modal-subtask-row');
+  const subtasks = [];
+
+  subtaskRows.forEach(row => {
+    const subTitle = row.querySelector('.modal-subtask-title')?.value.trim() || '';
+    const subDate = row.querySelector('.modal-subtask-date')?.value || null;
+
+    if (subTitle) {
+      subtasks.push({
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        title: subTitle,
+        due_date: subDate,
+        done: false
+      });
+    }
+  });
+
+  const newTodo = {
+    title: title,
+    order_number: orderNumber || null,
+    note: note || null,
+    due_date: dueDateVal,
+    prio: prio,
+    status: 'Offen',
+    role: (typeof currentGewerk !== 'undefined' ? currentGewerk : 'Zimmerer'),
+    is_next: isNext,
+    subtasks: subtasks
+  };
+
+  if (typeof supabaseClient !== 'undefined') {
+    const { data, error } = await supabaseClient
+      .from('my_todos')
+      .insert([newTodo])
+      .select();
+
+    if (error) {
+      console.error('Fehler beim Speichern der Aufgabe:', error);
+      alert('Fehler beim Speichern: ' + error.message);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      const created = data[0];
+      created.subtasks = created.subtasks || [];
+      
+      // 🌟 NEU: Vorübergehend als neu markieren für die optische Hervorhebung & Spitzenplatzierung
+      created.is_new = true;
+
+      // Ganz oben in das lokale Array einfügen
+      todos.unshift(created);
+    }
+  }
+
+  // Alerts, Fortschrittsbalken und Tabelle aktualisieren
+  if (typeof checkAlerts === 'function') checkAlerts();
+  if (typeof updateProgressBar === 'function') updateProgressBar();
+  if (typeof render === 'function') render();
+
+  closeAddTaskModal();
+}
 
   async function clearDueDate(id) {
   todos = todos.map(t => t.id === id ? { ...t, due_date: null } : t);
@@ -1315,66 +1763,19 @@ function jumpToLeihItem(itemId) {
   }
 
   function getISOWeekFromDate(d) {
-    const target = new Date(d.valueOf());
-    const dayNumber = (d.getDay() + 6) % 7;
-    target.setDate(target.getDate() - dayNumber + 3);
-    const firstThursday = target.valueOf();
-    target.setMonth(0, 1);
-    if (target.getDay() !== 4) {
-      target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7));
-    }
-    const weekNum = 1 + Math.round((firstThursday - target.valueOf()) / 604800000);
-    const year = d.getFullYear();
-    const formattedWeek = weekNum < 10 ? '0' + weekNum : weekNum;
-    return `${year}-W${formattedWeek}`;
+  const target = new Date(d.valueOf());
+  const dayNumber = (d.getDay() + 6) % 7;
+  target.setDate(target.getDate() - dayNumber + 3);
+  const firstThursday = target.valueOf();
+  target.setMonth(0, 1);
+  if (target.getDay() !== 4) {
+    target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7));
   }
-
-  form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  let termVal = null;
-  if (dateTypeAdd.value === 'date' && dueDateAdd.value) {
-    termVal = dueDateAdd.value;
-  } else if (dateTypeAdd.value === 'week' && dueWeekAdd.value) {
-    termVal = dueWeekAdd.value;
-  }
-
-  const newTodo = {
-    title: taskInput.value.trim(),
-    note: noteInputAdd.value.trim(),
-    due_date: termVal,
-    prio: prioSelect.value,
-    status: statusSelect.value,
-    role: currentGewerk || 'Zimmerer', // <--- NEU: Ordnet die Aufgabe dem aktiven Gewerk zu
-    is_next: false,
-    subtasks: []
-  };
-
-  const { data, error } = await supabaseClient
-    .from('my_todos')
-    .insert([newTodo])
-    .select();
-
-  if (error) {
-    console.error('Fehler beim Speichern:', error);
-    alert('Fehler beim Speichern!');
-    return;
-  }
-
-  if (data && data.length > 0) {
-    const created = data[0];
-    created.subtasks = created.subtasks || [];
-    todos.unshift(created);
-    checkAlerts();
-    updateProgressBar();
-    render();
-  }
-
-  taskInput.value = '';
-  noteInputAdd.value = '';
-  dueDateAdd.value = '';
-  dueWeekAdd.value = '';
-});
+  const weekNum = 1 + Math.round((firstThursday - target.valueOf()) / 604800000);
+  const year = d.getFullYear();
+  const formattedWeek = weekNum < 10 ? '0' + weekNum : weekNum;
+  return `${year}-W${formattedWeek}`;
+}
 
   function setFilter(filter, btn) {
     currentFilter = filter;
@@ -1382,6 +1783,12 @@ function jumpToLeihItem(itemId) {
     btn.classList.add('active');
     render();
   }
+
+  function sortByOldest() {
+  sortColumn = 'created_at';
+  sortDirection = 'asc'; // 'asc' = ältestes Datum zuerst
+  render();
+}
 
   function sortTable(column) {
     if (sortColumn === column) {
@@ -1618,8 +2025,7 @@ async function updateSubtaskDueDate(todoId, subtaskId, newDate) {
     const query = searchInput.value.toLowerCase().trim();
 
     let filtered = todos.filter(t => {
-      // 🔴 NEU: Strikte Gewerke-Filterung über die Spalte 'role'
-      // Falls 'role' leer/null ist (z. B. Alt-Daten), greift der Standard 'Zimmerer'
+      // 🔴 Strikte Gewerke-Filterung über die Spalte 'role'
       const matchesGewerk = (t.role || 'Zimmerer') === currentGewerk;
       if (!matchesGewerk) return false;
 
@@ -1651,6 +2057,11 @@ async function updateSubtaskDueDate(todoId, subtaskId, newDate) {
     const statusOrder = { 'Offen': 1, 'In Arbeit': 2, 'Erledigt': 3 };
 
     filtered.sort((a, b) => {
+      // 🌟 ABSOLUTE PRIORITÄT: Neue Aufgaben (is_new = true) stehen IMMER ganz oben an Position 1
+      if (a.is_new && !b.is_new) return -1;
+      if (!a.is_new && b.is_new) return 1;
+
+      // Sortierung nach Priorität
       if (sortColumn === 'prio') {
         const prioA = prioOrder[a.prio] || 99;
         const prioB = prioOrder[b.prio] || 99;
@@ -1664,6 +2075,24 @@ async function updateSubtaskDueDate(todoId, subtaskId, newDate) {
         return starA - starB;
       }
 
+      // Sortierung nach Erstellungsdatum (Älteste zuerst)
+      if (sortColumn === 'created_at') {
+        const dateA = a.created_at ? new Date(a.created_at).getTime() : a.id;
+        const dateB = b.created_at ? new Date(b.created_at).getTime() : b.id;
+        return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+      }
+
+      // Sortierung nach Fälligkeitsdatum / KW
+      if (sortColumn === 'due_date') {
+        const valA = a.due_date || '';
+        const valB = b.due_date || '';
+        if (!valA && !valB) return 0;
+        if (!valA) return 1;
+        if (!valB) return -1;
+        return sortDirection === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+      }
+
+      // Allgemeine Fallback-Sortierung
       let valA = a[sortColumn];
       let valB = b[sortColumn];
 
@@ -1673,9 +2102,6 @@ async function updateSubtaskDueDate(todoId, subtaskId, newDate) {
       } else if (sortColumn === 'status') {
         valA = statusOrder[valA] || 99;
         valB = statusOrder[valB] || 99;
-      } else if (sortColumn === 'due_date') {
-        if (!valA) return 1;
-        if (!valB) return -1;
       }
 
       if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
@@ -1683,10 +2109,21 @@ async function updateSubtaskDueDate(todoId, subtaskId, newDate) {
       return 0;
     });
 
+    // Pfeile in den Tabellen-Köpfen & Button-Highlighting aktualisieren
     ['is_next', 'status', 'title', 'note', 'due_date', 'created_at', 'prio'].forEach(col => {
       const el = document.getElementById(`sort-${col}`);
       if (el) el.innerText = col === sortColumn ? (sortDirection === 'asc' ? ' ▲' : ' ▼') : '';
     });
+
+    // Button-Highlight für "Älteste zuerst" umschalten
+    const oldestBtn = document.getElementById('btn-sort-oldest');
+    if (oldestBtn) {
+      if (sortColumn === 'created_at' && sortDirection === 'asc') {
+        oldestBtn.classList.add('active');
+      } else {
+        oldestBtn.classList.remove('active');
+      }
+    }
 
     if (filtered.length === 0) {
       todoList.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#999; padding:20px;">Keine passenden Aufgaben gefunden</td></tr>`;
@@ -1696,7 +2133,7 @@ async function updateSubtaskDueDate(todoId, subtaskId, newDate) {
     filtered.forEach(todo => {
       const tr = document.createElement('tr');
       tr.id = `todo-row-${todo.id}`;
-      tr.className = `main-row status-${todo.status.replace(" ", "-")} ${todo.is_next ? 'row-starred' : ''}`;
+      tr.className = `main-row status-${todo.status.replace(" ", "-")} ${todo.is_next ? 'row-starred' : ''} ${todo.is_new ? 'new-task-highlight' : ''}`;
 
       let currentMode = rowDateModes[todo.id];
       if (!currentMode) {
@@ -1721,6 +2158,9 @@ async function updateSubtaskDueDate(todoId, subtaskId, newDate) {
       const isAllDone = totalSub > 0 && totalSub === doneSub;
       const isEditingSubtasks = editingSubtaskIds.has(todo.id);
 
+      // Erstellungsdatum formatieren (z. B. DD.MM.YYYY)
+      const createdDateFormatted = todo.created_at ? formatDate(todo.created_at) : '';
+
       tr.innerHTML = `
   <!-- 1. Spalte: Star / Next -->
   <td style="text-align: center;">
@@ -1729,7 +2169,7 @@ async function updateSubtaskDueDate(todoId, subtaskId, newDate) {
     </button>
   </td>
 
-  <!-- 2. Spalte: Status & Info-Button -->
+  <!-- 2. Spalte: Status, Info-Button & Erstellungsdatum -->
   <td>
     <select onchange="updateStatus(${todo.id}, this.value)">
       <option value="Offen" ${todo.status === 'Offen' ? 'selected' : ''}>Offen</option>
@@ -1740,6 +2180,11 @@ async function updateSubtaskDueDate(todoId, subtaskId, newDate) {
     <button class="btn-info-pop" onclick="showInfoModal(${todo.id}, '${todo.created_at}', '${todo.order_number || ''}')" title="Info & Auftragsnummer">
       ℹ️ ${todo.order_number ? todo.order_number : '#' + todo.id}
     </button>
+    ${createdDateFormatted ? `
+      <div style="font-size: 11px; color: #777; margin-top: 3px; text-align: center;">
+        ${createdDateFormatted}
+      </div>
+    ` : ''}
   </td>
 
   <!-- 3. Spalte: Aufgabe / Unteraufgaben -->
@@ -1794,7 +2239,7 @@ async function updateSubtaskDueDate(todoId, subtaskId, newDate) {
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 3px;">
         <select class="date-type-select" onchange="switchDateTypeInTable(${todo.id}, this.value)">
           <option value="date" ${!isWeekMode ? 'selected' : ''}>📅 Datum</option>
-          <option value="week" ${isWeekMode ? 'selected' : ''}>🗓️️ KW</option>
+          <option value="week" ${isWeekMode ? 'selected' : ''}>🗓 KW</option>
         </select>
         ${todo.due_date ? `
           <button class="btn-clear-date" onclick="clearDueDate(${todo.id})" title="Termin entfernen">✕</button>
@@ -1808,7 +2253,7 @@ async function updateSubtaskDueDate(todoId, subtaskId, newDate) {
     </div>
   </td>
 
-  <!-- 6. Spalte: Prio (jetzt in einer eigenen Zelle!) -->
+  <!-- 6. Spalte: Prio -->
   <td>
     <select class="prio-select-table" onchange="updatePrio(${todo.id}, this.value)">
       <option value="Niedrig" ${todo.prio === 'Niedrig' ? 'selected' : ''}>🟢 Niedrig</option>
@@ -1819,7 +2264,7 @@ async function updateSubtaskDueDate(todoId, subtaskId, newDate) {
 
   <!-- 7. Spalte: Löschen -->
   <td style="text-align: center;">
-    <button class="btn-delete" onclick="deleteTodo(${todo.id})">🗑️</button>
+    <button class="btn-delete" onclick="deleteTodo(${todo.id})">🗑️️</button>
   </td>
 `;
 
@@ -1866,23 +2311,42 @@ async function loadLeihliste() {
 
 // 2. Tab-Umschaltung
 function switchTab(tabName) {
+  // Alle Tabs ausblenden
   document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+  
+  // Alle Tab-Buttons deaktivieren
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
 
-  const activeBtn = event ? event.target : document.querySelector(`.tab-btn[onclick*="${tabName}"]`);
-  if (activeBtn) activeBtn.classList.add('active');
+  // Aktiven Button hervorheben
+  const activeBtn = (typeof event !== 'undefined' && event && event.target) 
+    ? event.target.closest('.tab-btn') || event.target 
+    : document.querySelector(`.tab-btn[onclick*="${tabName}"]`);
+  
+  if (activeBtn && activeBtn.classList) {
+    activeBtn.classList.add('active');
+  }
 
+  // Richtigen Tab einblenden
+  let targetTabId = '';
   if (tabName === 'todos') {
-    document.getElementById('tab-todos').style.display = 'block';
+    targetTabId = 'tab-todos';
   } else if (tabName === 'leihliste') {
-    document.getElementById('tab-leihliste').style.display = 'block';
+    targetTabId = 'tab-leihliste';
     if (typeof loadLeihliste === 'function') loadLeihliste();
   } else if (tabName === 'telefonliste') {
-    document.getElementById('tab-telefonliste').style.display = 'block';
-    loadPhoneContacts();
-  } else if (tabName === 'firmenliste') {
-    document.getElementById('tab-firmenliste').style.display = 'block';
-    loadCompanies();
+    targetTabId = 'tab-telefonliste';
+    if (typeof loadPhoneContacts === 'function') loadPhoneContacts();
+  } else if (tabName === 'firmenliste' || tabName === 'firmen') {
+    // Nimmt tab-firmenliste oder als Fallback tab-firmen
+    targetTabId = document.getElementById('tab-firmenliste') ? 'tab-firmenliste' : 'tab-firmen';
+    if (typeof loadCompanies === 'function') loadCompanies();
+  }
+
+  const targetElem = document.getElementById(targetTabId);
+  if (targetElem) {
+    targetElem.style.display = 'block';
+  } else {
+    console.warn(`Tab-Element mit ID '${targetTabId}' wurde im HTML nicht gefunden.`);
   }
 }
 
@@ -2117,6 +2581,272 @@ async function addPhoneContact() {
   await loadPhoneContacts();
 }
 
+// Globale Variable für die dynamischen Kategorien aus Supabase
+let dbCategories = [];
+
+// 1. Kategorien beim Start aus Supabase laden
+async function fetchPhoneCategories() {
+  if (typeof supabaseClient === 'undefined') return;
+
+  const { data, error } = await supabaseClient
+    .from('phone_categories')
+    .select('*')
+    .order('category', { ascending: true })
+    .order('subcategory', { ascending: true });
+
+  if (error) {
+    console.error('Fehler beim Laden der Kategorien:', error);
+    return;
+  }
+
+  dbCategories = data || [];
+}
+
+// Beim Aufruf der Seite sofort ausführen
+document.addEventListener('DOMContentLoaded', () => {
+  fetchPhoneCategories();
+});
+
+// 2. Unterkategorie-Dropdown dynamisch befüllen
+function updateSubcategoryDropdown(selectedValue = null) {
+  const categorySelect = document.getElementById('modal-phone-category');
+  const subSelect = document.getElementById('modal-phone-amt-select');
+  const customContainer = document.getElementById('modal-phone-amt-custom-container');
+  const customInput = document.getElementById('modal-phone-amt-custom');
+  const suffixSelect = document.getElementById('modal-phone-amt-suffix');
+
+  if (!categorySelect || !subSelect) return;
+
+  const currentCategory = categorySelect.value;
+
+  // Dropdown leeren
+  subSelect.innerHTML = '';
+
+  // 1. FALL: Noch keine Oberkategorie gewählt
+  if (!currentCategory) {
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.disabled = true;
+    defaultOpt.selected = true;
+    defaultOpt.textContent = '-- Bitte zuerst Oberkategorie wählen --';
+    subSelect.appendChild(defaultOpt);
+
+    if (customContainer) customContainer.style.display = 'none';
+    if (customInput) customInput.value = '';
+    if (suffixSelect) suffixSelect.value = '';
+    return;
+  }
+
+  // Verfügbare Unterkategorien filtern
+  const availableSubcategories = (typeof dbCategories !== 'undefined' ? dbCategories : [])
+    .filter(c => c && c.category === currentCategory)
+    .map(c => c.subcategory);
+
+  // 2. Pflicht-Platzhalter einfügen
+  const placeholderOpt = document.createElement('option');
+  placeholderOpt.value = '';
+  placeholderOpt.disabled = true;
+  placeholderOpt.textContent = '-- Bitte Unterkategorie wählen --';
+  
+  // Wenn kein Wert übergeben wurde, wird dieser Platzhalter vorausgewählt
+  if (!selectedValue) {
+    placeholderOpt.selected = true;
+  }
+  subSelect.appendChild(placeholderOpt);
+
+  // 3. Gefundene Unterkategorien befüllen
+  availableSubcategories.forEach(sub => {
+    const opt = document.createElement('option');
+    opt.value = sub;
+    opt.textContent = sub;
+    if (selectedValue && selectedValue === sub) {
+      opt.selected = true;
+    }
+    subSelect.appendChild(opt);
+  });
+
+  // 4. Option zum Hinzufügen einer neuen Unterkategorie
+  const addOpt = document.createElement('option');
+  addOpt.value = '__NEW__';
+  addOpt.textContent = '➕ Neue Unterkategorie hinzufügen...';
+  if (selectedValue === '__NEW__') {
+    addOpt.selected = true;
+  }
+  subSelect.appendChild(addOpt);
+
+  // 5. Sichtbarkeit des Custom-Inputs steuern & Werte setzen
+  if (selectedValue) {
+    if (availableSubcategories.includes(selectedValue)) {
+      subSelect.value = selectedValue;
+      if (customContainer) customContainer.style.display = 'none';
+    } else {
+      // Wenn der Wert nicht in der Liste war, ist es eine benutzerdefinierte Kategorie
+      subSelect.value = '__NEW__';
+      if (customContainer) customContainer.style.display = 'block';
+      if (customInput) customInput.value = selectedValue;
+    }
+  } else {
+    // Neu-Anlage ohne ausgewählten Wert
+    if (customContainer) customContainer.style.display = 'none';
+    if (customInput) customInput.value = '';
+    if (suffixSelect) suffixSelect.value = '';
+  }
+}
+
+// 3. Wechsel der Unterkategorie im Dropdown verarbeiten
+function handleSubcategoryChange() {
+  const subSelect = document.getElementById('modal-phone-amt-select');
+  const customContainer = document.getElementById('modal-phone-amt-custom-container');
+  const customInput = document.getElementById('modal-phone-amt-custom');
+  const suffixSelect = document.getElementById('modal-phone-amt-suffix');
+
+  if (!subSelect) return;
+
+  if (subSelect.value === '__NEW__') {
+    if (customContainer) customContainer.style.display = 'block';
+    if (customInput) customInput.focus();
+  } else {
+    if (customContainer) customContainer.style.display = 'none';
+    if (customInput) customInput.value = '';
+    if (suffixSelect) suffixSelect.value = '';
+  }
+}
+
+// 4. Modal öffnen: Erstellen (async, um Daten sicherzustellen)
+async function openPhoneModal() {
+  document.getElementById('modal-phone-title').innerText = '📞 Neuen Kontakt anlegen';
+  document.getElementById('modal-phone-id').value = '';
+  document.getElementById('modal-phone-name').value = '';
+  
+  // Oberkategorie auf leeren Wert zurücksetzen (Platzhalter auswählen)
+  document.getElementById('modal-phone-category').value = '';
+  
+  document.getElementById('modal-phone-tele').value = '';
+  document.getElementById('modal-phone-mobil').value = '';
+  document.getElementById('modal-phone-email').value = '';
+
+  // Falls dbCategories noch leer ist, kurz nachladen
+  if (dbCategories.length === 0) {
+    await fetchPhoneCategories();
+  }
+
+  // Unterkategorien aktualisieren (setzt Unterkategorie auf "-- Bitte zuerst Oberkategorie wählen --")
+  updateSubcategoryDropdown();
+
+  const modal = document.getElementById('phone-modal-overlay');
+  if (modal) modal.style.display = 'flex';
+}
+
+// 5. Modal öffnen: Bearbeiten (async)
+async function editPhoneContact(id) {
+  const contact = phoneContacts.find(c => c.id === id);
+  if (!contact) return;
+
+  document.getElementById('modal-phone-title').innerText = '✏️ Kontakt bearbeiten';
+  document.getElementById('modal-phone-id').value = contact.id;
+  document.getElementById('modal-phone-name').value = contact.name || '';
+  
+  const category = contact.category || 'Betriebsamt 68 Intern';
+  document.getElementById('modal-phone-category').value = category;
+
+  document.getElementById('modal-phone-tele').value = contact.tele || '';
+  document.getElementById('modal-phone-mobil').value = contact.mobil || '';
+  document.getElementById('modal-phone-email').value = contact.email || '';
+
+  // Falls dbCategories noch leer ist, kurz nachladen
+  if (dbCategories.length === 0) {
+    await fetchPhoneCategories();
+  }
+
+  updateSubcategoryDropdown(contact.amt);
+
+  const modal = document.getElementById('phone-modal-overlay');
+  if (modal) modal.style.display = 'flex';
+}
+
+// 6. Modal schließen
+function closePhoneModal() {
+  const modal = document.getElementById('phone-modal-overlay');
+  if (modal) modal.style.display = 'none';
+}
+
+// 7. Speichern: Speichert den Kontakt UND neue Unterkategorien in Supabase
+async function savePhoneContactFromModal(event) {
+  if (event) event.preventDefault();
+
+  const id = document.getElementById('modal-phone-id')?.value;
+  const name = document.getElementById('modal-phone-name')?.value.trim();
+  const category = document.getElementById('modal-phone-category')?.value.trim() || 'Betriebsamt 68 Intern';
+  
+  const subSelect = document.getElementById('modal-phone-amt-select');
+  const customInput = document.getElementById('modal-phone-amt-custom');
+  const suffixSelect = document.getElementById('modal-phone-amt-suffix');
+  
+  let amt = subSelect ? subSelect.value : '';
+
+  if (amt === '__NEW__') {
+    let customText = customInput ? customInput.value.trim() : '';
+
+    if (customText) {
+      const suffix = suffixSelect ? suffixSelect.value : '';
+      amt = customText + suffix;
+
+      if (typeof supabaseClient !== 'undefined') {
+        await supabaseClient
+          .from('phone_categories')
+          .insert([{ category: category, subcategory: amt }]);
+      }
+      if (typeof dbCategories !== 'undefined') {
+        dbCategories.push({ category: category, subcategory: amt });
+      }
+    } else {
+      amt = 'Verwaltung';
+    }
+  }
+
+  if (!amt || amt === '__NEW__') amt = 'Verwaltung';
+
+  const tele = document.getElementById('modal-phone-tele')?.value.trim() || null;
+  const mobil = document.getElementById('modal-phone-mobil')?.value.trim() || null;
+  const email = document.getElementById('modal-phone-email')?.value.trim() || null;
+
+  if (!name) {
+    alert('Bitte einen Namen eingeben.');
+    return;
+  }
+
+  const contactData = { name, category, amt, tele, mobil, email };
+
+  if (id) {
+    const numericId = isNaN(id) ? id : Number(id);
+    if (typeof supabaseClient !== 'undefined') {
+      const { error } = await supabaseClient
+        .from('phone_contacts')
+        .update(contactData)
+        .eq('id', numericId);
+
+      if (error) {
+        alert('Fehler beim Aktualisieren: ' + error.message);
+        return;
+      }
+    }
+  } else {
+    if (typeof supabaseClient !== 'undefined') {
+      const { error } = await supabaseClient
+        .from('phone_contacts')
+        .insert([contactData]);
+
+      if (error) {
+        alert('Fehler beim Speichern: ' + error.message);
+        return;
+      }
+    }
+  }
+
+  closePhoneModal();
+  await loadPhoneContacts();
+}
+
 function startEditPhone(id) {
   editingPhoneId = id;
   renderPhoneList();
@@ -2175,64 +2905,177 @@ function renderPhoneList() {
 
   const query = (document.getElementById('search-phone')?.value || '').toLowerCase().trim();
 
+  // 1. Suche ausführen
   const filtered = phoneContacts.filter(c => 
-    c.name.toLowerCase().includes(query) ||
+    (c.name && c.name.toLowerCase().includes(query)) ||
     (c.tele && c.tele.toLowerCase().includes(query)) ||
     (c.mobil && c.mobil.toLowerCase().includes(query)) ||
     (c.email && c.email.toLowerCase().includes(query)) ||
-    (c.amt && c.amt.toLowerCase().includes(query))
+    (c.amt && c.amt.toLowerCase().includes(query)) ||
+    (c.category && c.category.toLowerCase().includes(query))
   );
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#999; padding:20px;">Keine Kontakte gefunden</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#999; padding:20px;">Keine Kontakte gefunden</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = filtered.map(c => {
-    const isEditing = editingPhoneId === c.id;
+  // 2. Kontakte gruppieren
+  const grouped = {};
+  filtered.forEach(c => {
+    const cat = c.category || 'Allgemein';
+    const amt = c.amt || 'Ohne Zuordnung';
 
-    if (isEditing) {
-      return `
-        <tr>
-          <td><input type="text" id="edit-phone-name-${c.id}" value="${escapeHtml(c.name)}" style="width:100%;"></td>
-          <td><input type="text" id="edit-phone-tele-${c.id}" value="${escapeHtml(c.tele || '')}" placeholder="Festnetz" style="width:100%;"></td>
-          <td><input type="text" id="edit-phone-mobil-${c.id}" value="${escapeHtml(c.mobil || '')}" placeholder="Mobil" style="width:100%;"></td>
-          <td><input type="email" id="edit-phone-email-${c.id}" value="${escapeHtml(c.email || '')}" placeholder="E-Mail" style="width:100%;"></td>
-          <td><input type="text" id="edit-phone-amt-${c.id}" value="${escapeHtml(c.amt || '')}" placeholder="Amt / Abt." style="width:100%;"></td>
-          <td style="text-align: center;">
-            <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
-              <button class="btn-save" onclick="savePhoneEdit(${c.id})" title="Speichern">💾</button>
-              <button class="btn-cancel" onclick="cancelEditPhone()" title="Abbrechen">✕</button>
-            </div>
-          </td>
-        </tr>
-      `;
-    }
+    if (!grouped[cat]) grouped[cat] = {};
+    if (!grouped[cat][amt]) grouped[cat][amt] = [];
 
-    return `
-      <tr>
-        <td style="font-weight: 500;">${escapeHtml(c.name)}</td>
-        <td>${c.tele ? `<a href="tel:${escapeHtml(c.tele)}">${escapeHtml(c.tele)}</a>` : '-'}</td>
-        <td>${c.mobil ? `<a href="tel:${escapeHtml(c.mobil)}">${escapeHtml(c.mobil)}</a>` : '-'}</td>
-        <td>${c.email ? `<a href="mailto:${escapeHtml(c.email)}">${escapeHtml(c.email)}</a>` : '-'}</td>
-        <td>${escapeHtml(c.amt || '-')}</td>
-        <td style="text-align: center;">
-          <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
-            <button class="btn-edit" onclick="startEditPhone(${c.id})" title="Bearbeiten">✏️</button>
-            <button class="btn-delete" onclick="deletePhoneContact(${c.id})" title="Löschen">🗑️</button>
-          </div>
+    grouped[cat][amt].push(c);
+  });
+
+  // 3. Tabellenzeilen generieren
+  let html = '';
+
+  for (const catName in grouped) {
+    // Oberkategorie Header (5 Spalten breit)
+    html += `
+      <tr class="phone-group-category" style="background-color: #2e7d32; color: white;">
+        <td colspan="5" style="font-weight: bold; font-size: 15px; padding: 10px 12px;">
+          🏢 ${escapeHtml(catName)}
         </td>
       </tr>
     `;
-  }).join('');
+
+    for (const amtName in grouped[catName]) {
+      // Unterkategorie Header (5 Spalten breit)
+      html += `
+        <tr class="phone-group-amt" style="background-color: #f0f4f1; border-top: 2px solid #a5d6a7;">
+          <td colspan="5" style="font-weight: 600; font-size: 13px; color: #1b5e20; padding: 6px 12px;">
+            📌 ${escapeHtml(amtName)}
+          </td>
+        </tr>
+      `;
+
+      // Einzelne Kontakte
+      grouped[catName][amtName].forEach(c => {
+        const isEditing = editingPhoneId === c.id;
+
+        if (isEditing) {
+          html += `
+            <tr style="background-color: #fffde7;">
+              <!-- Versteckte Werte für Category & Amt beim Inline-Edit -->
+              <input type="hidden" id="edit-phone-category-${c.id}" value="${escapeHtml(c.category || '')}">
+              <input type="hidden" id="edit-phone-amt-${c.id}" value="${escapeHtml(c.amt || '')}">
+              
+              <td><input type="text" id="edit-phone-name-${c.id}" value="${escapeHtml(c.name)}" style="width:100%; box-sizing:border-box;"></td>
+              <td><input type="text" id="edit-phone-tele-${c.id}" value="${escapeHtml(c.tele || '')}" placeholder="Festnetz" style="width:100%; box-sizing:border-box;"></td>
+              <td><input type="text" id="edit-phone-mobil-${c.id}" value="${escapeHtml(c.mobil || '')}" placeholder="Mobil" style="width:100%; box-sizing:border-box;"></td>
+              <td><input type="email" id="edit-phone-email-${c.id}" value="${escapeHtml(c.email || '')}" placeholder="E-Mail" style="width:100%; box-sizing:border-box;"></td>
+              <td style="text-align: center;">
+                <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
+                  <button class="btn-save" onclick="savePhoneEdit(${c.id})" title="Speichern" style="border:none; background:none; cursor:pointer;">💾</button>
+                  <button class="btn-cancel" onclick="cancelEditPhone()" title="Abbrechen" style="border:none; background:none; cursor:pointer;">✕</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        } else {
+          html += `
+            <tr>
+              <td style="font-weight: 500; padding-left: 20px;">${escapeHtml(c.name)}</td>
+              <td>${c.tele ? `<a href="tel:${escapeHtml(c.tele)}">☎️ ${escapeHtml(c.tele)}</a>` : '-'}</td>
+              <td>${c.mobil ? `<a href="tel:${escapeHtml(c.mobil)}">📱 ${escapeHtml(c.mobil)}</a>` : '-'}</td>
+              <td>${c.email ? `<a href="mailto:${escapeHtml(c.email)}">${escapeHtml(c.email)}</a>` : '-'}</td>
+              <td style="text-align: center;">
+                <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
+                  <button class="btn-edit" onclick="editPhoneContact(${c.id})" title="Bearbeiten" style="border:none; background:none; cursor:pointer;">✏️</button>
+                  <button class="btn-delete" onclick="deletePhoneContact(${c.id})" title="Löschen" style="border:none; background:none; cursor:pointer;">🗑️</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }
+      });
+    }
+  }
+
+  tbody.innerHTML = html;
+}
+
+// Globale Liste & Filter-Variable
+let contacts = [];
+let currentCategoryFilter = 'Alle';
+
+// 1. Kontakte aus Supabase laden
+async function fetchContacts() {
+  if (typeof supabaseClient === 'undefined') return;
+
+  const { data, error } = await supabaseClient
+    .from('phone_contacts')
+    .select('*')
+    .order('category', { ascending: true })
+    .order('subcategory', { ascending: true })
+    .order('name', { ascending: true });
+
+  if (error) {
+    console.error('Fehler beim Laden der Telefonliste:', error);
+    return;
+  }
+
+  contacts = data || [];
+  renderPhoneList();
+}
+
+// 2. Kontakt aus dem Modal speichern
+async function saveContactFromModal(event) {
+  event.preventDefault();
+
+  const name = document.getElementById('contact-name').value.trim();
+  const category = document.getElementById('contact-category').value.trim() || 'Betriebsamt INTERN';
+  const subcategory = document.getElementById('contact-subcategory').value.trim() || 'Allgemein';
+  const shortNum = document.getElementById('contact-short').value.trim() || null;
+  const mobile = document.getElementById('contact-mobile').value.trim() || null;
+  const email = document.getElementById('contact-email').value.trim() || null;
+
+  if (!name) {
+    alert('Bitte einen Namen eingeben.');
+    return;
+  }
+
+  const newContact = {
+    name: name,
+    category: category,
+    subcategory: subcategory,
+    short_num: shortNum,
+    mobile: mobile,
+    email: email
+  };
+
+  if (typeof supabaseClient !== 'undefined') {
+    const { data, error } = await supabaseClient
+      .from('phone_contacts')
+      .insert([newContact])
+      .select();
+
+    if (error) {
+      console.error('Fehler beim Speichern des Kontakts:', error);
+      alert('Fehler beim Speichern: ' + error.message);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      contacts.push(data[0]);
+    }
+  }
+
+  renderPhoneList();
+  closeContactModal();
 }
 
 
 /* =========================================================
-   FIRMENLISTE & ANSPRECHPARTNER LOGIK (Supabase - Fixiert & Bearbeiten)
+   FIRMENLISTE & ANSPRECHPARTNER LOGIK
    ========================================================= */
 let companies = [];
-let openCompanyIds = new Set();
 let editingCompanyId = null;
 let editingCompanyContactId = null;
 
@@ -2254,8 +3097,9 @@ async function loadCompanies() {
 async function addCompany() {
   const nameInput = document.getElementById('company-name');
   const kdnrInput = document.getElementById('company-kdnr');
+  const phoneInput = document.getElementById('company-phone');
 
-  const name = nameInput.value.trim();
+  const name = nameInput?.value.trim();
   if (!name) {
     alert('Bitte gib einen Firmennamen ein.');
     return;
@@ -2264,7 +3108,8 @@ async function addCompany() {
   const { error } = await supabaseClient.from('companies').insert([
     {
       name: name,
-      kdnr: kdnrInput.value.trim()
+      kdnr: kdnrInput?.value.trim() || '',
+      phone: phoneInput?.value.trim() || ''
     }
   ]);
 
@@ -2273,8 +3118,9 @@ async function addCompany() {
     return;
   }
 
-  nameInput.value = '';
-  kdnrInput.value = '';
+  if (nameInput) nameInput.value = '';
+  if (kdnrInput) kdnrInput.value = '';
+  if (phoneInput) phoneInput.value = '';
 
   await loadCompanies();
 }
@@ -2292,49 +3138,43 @@ function cancelEditCompany() {
 async function saveCompanyEdit(id) {
   const name = document.getElementById(`edit-company-name-${id}`)?.value.trim();
   const kdnr = document.getElementById(`edit-company-kdnr-${id}`)?.value.trim();
+  const phone = document.getElementById(`edit-company-phone-${id}`)?.value.trim();
 
   if (!name) {
     alert('Firmenname darf nicht leer sein.');
     return;
   }
 
-  const { error } = await supabaseClient
+  // 1. Firma aktualisieren
+  const { error: companyError } = await supabaseClient
     .from('companies')
-    .update({ name, kdnr })
+    .update({ name, kdnr, phone })
     .eq('id', id);
 
-  if (error) {
-    alert('Fehler beim Aktualisieren: ' + error.message);
+  if (companyError) {
+    alert('Fehler beim Aktualisieren der Firma: ' + companyError.message);
     return;
+  }
+
+  // 2. Ansprechpartner dieser Firma aktualisieren
+  const currentCompany = companies.find(c => c.id === id);
+  if (currentCompany && currentCompany.company_contacts) {
+    for (const contact of currentCompany.company_contacts) {
+      const cName = document.getElementById(`edit-contact-name-${contact.id}`)?.value.trim();
+      const cTele = document.getElementById(`edit-contact-tele-${contact.id}`)?.value.trim();
+      const cEmail = document.getElementById(`edit-contact-email-${contact.id}`)?.value.trim();
+
+      if (cName !== undefined) {
+        await supabaseClient
+          .from('company_contacts')
+          .update({ name: cName, tele: cTele, email: cEmail })
+          .eq('id', contact.id);
+      }
+    }
   }
 
   editingCompanyId = null;
   await loadCompanies();
-}
-
-async function deleteCompany(companyId) {
-  if (!confirm('Möchtest du diese Firma samt Ansprechpartnern wirklich löschen?')) return;
-
-  const { error } = await supabaseClient
-    .from('companies')
-    .delete()
-    .eq('id', companyId);
-
-  if (error) {
-    alert('Fehler beim Löschen: ' + error.message);
-    return;
-  }
-
-  await loadCompanies();
-}
-
-function toggleCompanyContacts(companyId) {
-  if (openCompanyIds.has(companyId)) {
-    openCompanyIds.delete(companyId);
-  } else {
-    openCompanyIds.add(companyId);
-  }
-  renderCompanyList();
 }
 
 async function addCompanyContact(companyId) {
@@ -2355,7 +3195,6 @@ async function addCompanyContact(companyId) {
     return;
   }
 
-  openCompanyIds.add(companyId);
   if (data && data.length > 0) {
     editingCompanyContactId = data[0].id;
   }
@@ -2405,6 +3244,295 @@ async function deleteCompanyContact(contactId) {
   await loadCompanies();
 }
 
+// Modal öffnen (für NEUEN Kontakt)
+function openAddContactModal(companyId) {
+  document.getElementById('modal-contact-title').innerText = 'Neuen Kontakt hinzufügen';
+  document.getElementById('modal-contact-company-id').value = companyId;
+  document.getElementById('modal-contact-id').value = '';
+  document.getElementById('modal-contact-name').value = '';
+  document.getElementById('modal-contact-tele').value = '';
+  document.getElementById('modal-contact-email').value = '';
+
+  const modal = document.getElementById('modal-add-contact');
+  if (modal) {
+    modal.style.display = 'flex';
+    document.getElementById('modal-contact-name').focus();
+  }
+}
+
+// Modal öffnen (für BESTEHENDEN Kontakt bearbeiten)
+function openEditContactModal(companyId, contactId) {
+  const company = companies.find(c => c.id == companyId);
+  if (!company) return;
+  const contact = (company.company_contacts || []).find(s => s.id == contactId);
+  if (!contact) return;
+
+  document.getElementById('modal-contact-title').innerText = 'Kontakt bearbeiten';
+  document.getElementById('modal-contact-company-id').value = companyId;
+  document.getElementById('modal-contact-id').value = contact.id;
+  document.getElementById('modal-contact-name').value = contact.name || '';
+  document.getElementById('modal-contact-tele').value = contact.tele || '';
+  document.getElementById('modal-contact-email').value = contact.email || '';
+
+  const modal = document.getElementById('modal-add-contact');
+  if (modal) {
+    modal.style.display = 'flex';
+    document.getElementById('modal-contact-name').focus();
+  }
+}
+
+// Modal schließen
+function closeAddContactModal() {
+  const modal = document.getElementById('modal-add-contact');
+  if (modal) modal.style.display = 'none';
+}
+
+// Kontakt speichern (INSERT oder UPDATE)
+// Kontakt speichern (erstellt neu oder aktualisiert bestehenden Kontakt)
+async function saveModalContact() {
+  const companyId = document.getElementById('modal-contact-company-id').value;
+  const contactId = document.getElementById('modal-contact-id').value;
+  const name = document.getElementById('modal-contact-name').value.trim();
+  const tele = document.getElementById('modal-contact-tele').value.trim();
+  const email = document.getElementById('modal-contact-email').value.trim();
+
+  if (!name && !tele && !email) {
+    alert('Bitte mindestens ein Feld ausfüllen.');
+    return;
+  }
+
+  let error;
+  if (contactId) {
+    // Bestehenden Kontakt in Supabase aktualisieren (UPDATE)
+    const res = await supabaseClient
+      .from('company_contacts')
+      .update({ name: name, tele: tele, email: email })
+      .eq('id', contactId);
+    error = res.error;
+  } else {
+    // Neuen Kontakt in Supabase anlegen (INSERT)
+    const res = await supabaseClient
+      .from('company_contacts')
+      .insert([{ company_id: companyId, name: name, tele: tele, email: email }]);
+    error = res.error;
+  }
+
+  if (error) {
+    console.error('Fehler beim Speichern des Kontakts:', error);
+    alert('Fehler beim Speichern des Kontakts: ' + error.message);
+    return;
+  }
+
+  closeAddContactModal();
+
+  if (typeof loadCompanies === 'function') {
+    await loadCompanies();
+  } else {
+    renderCompanyList();
+  }
+}
+
+// Modal für NEUE Firma öffnen
+function openAddCompanyModal() {
+  const titleElem = document.getElementById('modal-company-title');
+  if (titleElem) titleElem.textContent = 'Neue Firma hinzufügen';
+
+  document.getElementById('modal-company-id').value = '';
+  document.getElementById('modal-company-name').value = '';
+  document.getElementById('modal-company-kdnr').value = '';
+  document.getElementById('modal-company-phone').value = '';
+  document.getElementById('modal-company-email').value = '';
+
+  // Ansprechpartner-Container leeren & 1 leeres Feld einfügen
+  document.getElementById('modal-contacts-container').innerHTML = '';
+  addContactRowToModal(); 
+
+  const modal = document.getElementById('modal-add-company');
+  if (modal) {
+    modal.style.display = 'flex';
+    document.getElementById('modal-company-name').focus();
+  }
+}
+
+// Modal schließen
+function closeAddCompanyModal() {
+  const modal = document.getElementById('modal-add-company');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+// Firma speichern (Neu-Anlegen ODER Aktualisieren)
+async function saveNewCompany(event) {
+  event.preventDefault();
+
+  const companyId = document.getElementById('modal-company-id').value;
+  const name = document.getElementById('modal-company-name').value.trim();
+  const kdnr = document.getElementById('modal-company-kdnr').value.trim();
+  const phone = document.getElementById('modal-company-phone').value.trim();
+  const companyEmail = document.getElementById('modal-company-email').value.trim();
+
+  if (!name) {
+    alert('Bitte einen Firmennamen eingeben.');
+    return;
+  }
+
+  // Alle eingetragenen Ansprechpartner aus dem Modal auslesen
+  const contactRows = document.querySelectorAll('.modal-contact-row');
+  const contactsToSave = [];
+
+  contactRows.forEach(row => {
+    const cName = row.querySelector('.contact-name')?.value.trim() || '';
+    const cTele = row.querySelector('.contact-tele')?.value.trim() || '';
+    const cEmail = row.querySelector('.contact-email')?.value.trim() || '';
+    const cId = row.querySelector('.contact-id')?.value || null;
+
+    if (cName || cTele || cEmail) {
+      contactsToSave.push({ id: cId, name: cName, tele: cTele, email: cEmail });
+    }
+  });
+
+  if (typeof supabaseClient !== 'undefined') {
+    let activeCompanyId = companyId;
+
+    if (companyId) {
+      // 1a. Firma aktualisieren
+      const { error: updateError } = await supabaseClient
+        .from('companies')
+        .update({ name, kdnr, phone, email: companyEmail })
+        .eq('id', companyId);
+
+      if (updateError) {
+        alert('Fehler beim Aktualisieren: ' + updateError.message);
+        return;
+      }
+    } else {
+      // 1b. Neue Firma anlegen
+      const { data: companyData, error: insertError } = await supabaseClient
+        .from('companies')
+        .insert([{ name, kdnr, phone, email: companyEmail }])
+        .select();
+
+      if (insertError) {
+        alert('Fehler beim Erstellen: ' + insertError.message);
+        return;
+      }
+      if (companyData && companyData.length > 0) {
+        activeCompanyId = companyData[0].id;
+      }
+    }
+
+    // 2. Ansprechpartner in Supabase abgleichen
+    if (activeCompanyId) {
+      // Bestehende Kontakte der Firma abrufen
+      const { data: existingContacts } = await supabaseClient
+        .from('company_contacts')
+        .select('id')
+        .eq('company_id', activeCompanyId);
+
+      const existingIds = (existingContacts || []).map(c => String(c.id));
+      const keptIds = contactsToSave.filter(c => c.id).map(c => String(c.id));
+
+      // Im Modal gelöschte Kontakte aus der DB entfernen
+      const idsToDelete = existingIds.filter(id => !keptIds.includes(id));
+      if (idsToDelete.length > 0) {
+        await supabaseClient.from('company_contacts').delete().in('id', idsToDelete);
+      }
+
+      // Neue / geänderte Kontakte speichern
+      for (const contact of contactsToSave) {
+        if (contact.id) {
+          // Update
+          await supabaseClient
+            .from('company_contacts')
+            .update({ name: contact.name, tele: contact.tele, email: contact.email })
+            .eq('id', contact.id);
+        } else {
+          // Insert
+          await supabaseClient
+            .from('company_contacts')
+            .insert([{ company_id: activeCompanyId, name: contact.name, tele: contact.tele, email: contact.email }]);
+        }
+      }
+    }
+  }
+
+  closeAddCompanyModal();
+
+  if (typeof loadCompanies === 'function') {
+    await loadCompanies();
+  } else {
+    renderCompanyList();
+  }
+}
+
+function openEditCompanyModal(company) {
+  const titleElem = document.getElementById('modal-company-title');
+  if (titleElem) titleElem.textContent = 'Firma bearbeiten';
+
+  document.getElementById('modal-company-id').value = company.id || '';
+  document.getElementById('modal-company-name').value = company.name || '';
+  document.getElementById('modal-company-kdnr').value = company.kdnr || '';
+  document.getElementById('modal-company-phone').value = company.phone || '';
+  document.getElementById('modal-company-email').value = company.email || '';
+
+  // Alle bestehenden Ansprechpartner im Modal rendern
+  const container = document.getElementById('modal-contacts-container');
+  container.innerHTML = '';
+
+  const contacts = company.company_contacts || [];
+  if (contacts.length > 0) {
+    contacts.forEach(c => addContactRowToModal(c));
+  } else {
+    addContactRowToModal(); // Standardmäßig 1 leere Zeile zeigen
+  }
+
+  const modal = document.getElementById('modal-add-company');
+  if (modal) modal.style.display = 'flex';
+}
+
+function openEditCompanyModalById(companyId) {
+  const company = companies.find(c => String(c.id) === String(companyId));
+  if (company) {
+    openEditCompanyModal(company);
+  } else {
+    console.error('Firma nicht gefunden ID:', companyId);
+  }
+}
+
+// Generiert eine neue Zeile für einen Ansprechpartner im Modal
+function addContactRowToModal(contact = {}) {
+  const container = document.getElementById('modal-contacts-container');
+  if (!container) return;
+
+  const rowId = 'contact-row-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
+
+  const rowDiv = document.createElement('div');
+  rowDiv.className = 'modal-contact-row';
+  rowDiv.id = rowId;
+  rowDiv.style.cssText = 'background: #ffffff; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; position: relative;';
+
+  // Versteckte Kontakt-ID (falls bestehender Kontakt bearbeitet wird)
+  const contactId = contact.id || '';
+  const name = contact.name || '';
+  const tele = contact.tele || '';
+  const email = contact.email || '';
+
+  rowDiv.innerHTML = `
+    <input type="hidden" class="contact-id" value="${contactId}">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+      <input type="text" class="contact-name" value="${escapeHtml(name)}" placeholder="Name / Funktion" style="width: calc(100% - 30px); padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;">
+      <button type="button" onclick="document.getElementById('${rowId}').remove()" title="Entfernen" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0 4px;">&times;</button>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <input type="text" class="contact-tele" value="${escapeHtml(tele)}" placeholder="Telefon Direct" style="flex: 1; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;">
+      <input type="email" class="contact-email" value="${escapeHtml(email)}" placeholder="E-Mail" style="flex: 1; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;">
+    </div>
+  `;
+
+  container.appendChild(rowDiv);
+}
+
 function renderCompanyList() {
   const tbody = document.getElementById('firmenliste-tbody');
   if (!tbody) return;
@@ -2412,7 +3540,10 @@ function renderCompanyList() {
   const query = (document.getElementById('search-company')?.value || '').toLowerCase().trim();
 
   const filtered = companies.filter(c => {
-    const mainMatch = c.name.toLowerCase().includes(query) || (c.kdnr && c.kdnr.toLowerCase().includes(query));
+    const mainMatch = (c.name && c.name.toLowerCase().includes(query)) || 
+                      (c.kdnr && c.kdnr.toLowerCase().includes(query)) ||
+                      (c.phone && c.phone.toLowerCase().includes(query)) ||
+                      (c.email && c.email.toLowerCase().includes(query));
     const subMatch = c.company_contacts && c.company_contacts.some(s => 
       (s.name && s.name.toLowerCase().includes(query)) || 
       (s.tele && s.tele.toLowerCase().includes(query)) || 
@@ -2430,21 +3561,65 @@ function renderCompanyList() {
 
   filtered.forEach(c => {
     const contacts = c.company_contacts || [];
-    const isOpen = openCompanyIds.has(c.id) || query.length > 0;
-    const isEditingCompany = editingCompanyId === c.id;
+    const isEditingCompany = typeof editingCompanyId !== 'undefined' && editingCompanyId === c.id;
 
     if (isEditingCompany) {
       html += `
-        <tr class="main-row">
-          <td><input type="text" id="edit-company-name-${c.id}" value="${escapeHtml(c.name)}" style="width:100%; font-weight:bold;"></td>
-          <td><input type="text" id="edit-company-kdnr-${c.id}" value="${escapeHtml(c.kdnr || '')}" placeholder="Kunden-Nr." style="width:100%;"></td>
-          <td>
-            <button type="button" class="btn-subtask-toggle ${isOpen ? 'active' : ''}" onclick="toggleCompanyContacts(${c.id})">
-              👥 Ansprechpartner (${contacts.length})
-            </button>
+        <tr>
+          <td style="vertical-align: top; width: 220px;">
+            <input type="text" id="edit-company-name-${c.id}" value="${escapeHtml(c.name)}" style="width:100%; font-weight:bold;" placeholder="Firmenname">
           </td>
-          <td style="text-align: center;">
-            <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
+          <td style="vertical-align: top; width: 110px;">
+            <input type="text" id="edit-company-kdnr-${c.id}" value="${escapeHtml(c.kdnr || '')}" placeholder="Kunden-Nr." style="width:100%;">
+          </td>
+          <td style="vertical-align: top; min-width: 520px;">
+            <!-- Zentrale Kontaktdaten -->
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+              <div style="flex: 1;">
+                <label style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">Zentrale Telefon-Nr.:</label>
+                <input type="text" id="edit-company-phone-${c.id}" value="${escapeHtml(c.phone || '')}" style="width:100%; font-size: 0.9rem;" placeholder="z.B. 07131123456">
+              </div>
+              <div style="flex: 1;">
+                <label style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">Zentrale E-Mail:</label>
+                <input type="email" id="edit-company-email-${c.id}" value="${escapeHtml(c.email || '')}" style="width:100%; font-size: 0.9rem;" placeholder="z.B. info@musterfirma.de">
+              </div>
+            </div>
+
+            <!-- Ansprechpartner Container im Bearbeiten-Modus -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 10px;">
+              <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; font-weight: 700; margin-bottom: 8px;">
+                ANSPRECHPARTNER
+              </div>
+
+              ${contacts.length > 0 ? `
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
+                  ${contacts.map(s => `
+                    <div style="background: #ffffff; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e0; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                      <div style="min-width: 0; flex: 1;">
+                        <div style="font-weight: 600; color: #2d3748; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                          ${escapeHtml(s.name || 'Unbenannter Kontakt')}
+                        </div>
+                        <div style="display: flex; gap: 16px; font-size: 0.85rem; color: #4a5568; flex-wrap: wrap; align-items: center;">
+                          ${s.tele ? `<span style="white-space: nowrap;">📞 ${escapeHtml(s.tele)}</span>` : ''}
+                          ${s.email ? `<span style="white-space: nowrap;">✉️ ${escapeHtml(s.email)}</span>` : ''}
+                        </div>
+                      </div>
+                      <div style="display: flex; gap: 4px; flex-shrink: 0;">
+                        <button type="button" onclick="openEditContactModal(${c.id}, ${s.id})" title="Kontakt im Overlay bearbeiten" style="background: none; border: none; cursor: pointer; padding: 2px; font-size: 0.85rem;">✏️</button>
+                        <button type="button" onclick="deleteCompanyContact(${s.id})" title="Kontakt löschen" style="background: none; border: none; cursor: pointer; padding: 2px; font-size: 0.85rem;">🗑</button>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
+
+              <button type="button" onclick="openAddContactModal(${c.id})" style="background: #ffffff; border: 1px dashed #cbd5e0; color: #2b6cb0; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; width: 100%;">
+                + Ansprechpartner hinzufügen
+              </button>
+            </div>
+          </td>
+          <td style="text-align: center; vertical-align: top; width: 80px;">
+            <div style="display: flex; gap: 4px; justify-content: center;">
               <button class="btn-save" onclick="saveCompanyEdit(${c.id})" title="Speichern">💾</button>
               <button class="btn-cancel" onclick="cancelEditCompany()" title="Abbrechen">✕</button>
             </div>
@@ -2453,81 +3628,58 @@ function renderCompanyList() {
       `;
     } else {
       html += `
-        <tr class="main-row">
-          <td style="font-weight: bold;">${escapeHtml(c.name)}</td>
-          <td>${escapeHtml(c.kdnr || '-')}</td>
-          <td>
-            <button type="button" class="btn-subtask-toggle ${isOpen ? 'active' : ''}" onclick="toggleCompanyContacts(${c.id})">
-              👥 Ansprechpartner (${contacts.length}) ${isOpen ? '▲' : '▼'}
-            </button>
+        <tr>
+          <td style="vertical-align: top; width: 220px;">
+            <div style="font-weight: bold; font-size: 1.05rem; color: #1a202c;">${escapeHtml(c.name)}</div>
           </td>
-          <td style="text-align: center;">
+          <td style="vertical-align: top; color: #4a5568; white-space: nowrap; width: 110px;">
+            ${escapeHtml(c.kdnr || '-')}
+          </td>
+          <td style="vertical-align: top; min-width: 520px;">
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+
+              <!-- Zentrale Kontaktdaten -->
+              ${(c.phone || c.email) ? `
+                <div style="background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #edf2f7;">
+                  <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #718096; font-weight: 600; margin-bottom: 2px;">
+                    Zentrale
+                  </div>
+                  <div style="display: flex; gap: 16px; font-size: 0.9rem; flex-wrap: wrap;">
+                    ${c.phone ? `<a href="tel:${escapeHtml(c.phone)}" style="text-decoration: underline; color: #0000ee; white-space: nowrap;">📞 ${escapeHtml(c.phone)}</a>` : ''}
+                    ${c.email ? `<a href="mailto:${escapeHtml(c.email)}" style="text-decoration: underline; color: #0000ee; white-space: nowrap;">✉️ ${escapeHtml(c.email)}</a>` : ''}
+                  </div>
+                </div>
+              ` : ''}
+
+              <!-- Haupt-Container für Ansprechpartner -->
+              ${contacts.length > 0 ? `
+                <div style="background: #f8fafc; border: 1px solid #edf2f7; border-radius: 8px; padding: 10px 12px;">
+                  <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #718096; font-weight: 700; margin-bottom: 6px;">
+                    ANSPRECHPARTNER
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 8px;">
+                    ${contacts.map(s => `
+                      <div style="border-top: 1px solid #e2e8f0; padding-top: 6px;">
+                        <div style="font-weight: 600; color: #2d3748; font-size: 0.9rem; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                          ${escapeHtml(s.name || '-')}
+                        </div>
+                        <div style="display: flex; gap: 16px; align-items: center; font-size: 0.85rem; flex-wrap: wrap;">
+                          ${s.tele ? `<a href="tel:${escapeHtml(s.tele)}" style="text-decoration: underline; color: #0000ee; white-space: nowrap;">📞 ${escapeHtml(s.tele)}</a>` : ''}
+                          ${s.email ? `<a href="mailto:${escapeHtml(s.email)}" style="text-decoration: underline; color: #0000ee; white-space: nowrap;">✉️ ${escapeHtml(s.email)}</a>` : ''}
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              ` : ''}
+
+            </div>
+          </td>
+          <td style="text-align: center; vertical-align: top; width: 80px;">
             <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
-              <button class="btn-edit" onclick="startEditCompany(${c.id})" title="Bearbeiten">✏️</button>
+              <button class="btn-edit" onclick="openEditCompanyModalById(${c.id})" title="Bearbeiten im Overlay">✏️</button>
               <button class="btn-delete" onclick="deleteCompany(${c.id})" title="Löschen">🗑️</button>
             </div>
-          </td>
-        </tr>
-      `;
-    }
-
-    if (isOpen) {
-      html += `
-        <tr>
-          <td colspan="4" style="background: #fdfdfd; padding: 10px 15px 15px 30px; border-left: 3px solid #007bff;">
-            <div style="font-weight: bold; margin-bottom: 8px; font-size: 0.9rem; color: #444;">
-              Ansprechpartner von ${escapeHtml(c.name)}:
-            </div>
-            
-            ${contacts.length > 0 ? `
-              <table style="width:100%; margin-bottom: 8px; background: white; border-radius: 4px; border: 1px solid #e0e0e0;">
-                <thead>
-                  <tr style="background: #f5f5f5; font-size: 0.85rem;">
-                    <th style="padding: 4px 8px;">Name</th>
-                    <th style="padding: 4px 8px;">Tele</th>
-                    <th style="padding: 4px 8px;">e-Mail</th>
-                    <th style="width: 70px; text-align: center;"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${contacts.map(s => {
-                    const isEditingContact = editingCompanyContactId === s.id;
-
-                    if (isEditingContact) {
-                      return `
-                        <tr>
-                          <td style="padding: 4px;"><input type="text" id="edit-contact-name-${s.id}" value="${escapeHtml(s.name || '')}" placeholder="Name" style="width:100%;"></td>
-                          <td style="padding: 4px;"><input type="text" id="edit-contact-tele-${s.id}" value="${escapeHtml(s.tele || '')}" placeholder="Telefon" style="width:100%;"></td>
-                          <td style="padding: 4px;"><input type="email" id="edit-contact-email-${s.id}" value="${escapeHtml(s.email || '')}" placeholder="E-Mail" style="width:100%;"></td>
-                          <td style="padding: 4px; text-align:center;">
-                            <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
-                              <button class="btn-save" onclick="saveCompanyContactEdit(${s.id})" title="Speichern">💾</button>
-                              <button class="btn-cancel" onclick="cancelEditCompanyContact()" title="Abbrechen">✕</button>
-                            </div>
-                          </td>
-                        </tr>
-                      `;
-                    }
-
-                    return `
-                      <tr>
-                        <td style="padding: 6px 8px;">${escapeHtml(s.name || '-')}</td>
-                        <td style="padding: 6px 8px;">${s.tele ? `<a href="tel:${escapeHtml(s.tele)}">${escapeHtml(s.tele)}</a>` : '-'}</td>
-                        <td style="padding: 6px 8px;">${s.email ? `<a href="mailto:${escapeHtml(s.email)}">${escapeHtml(s.email)}</a>` : '-'}</td>
-                        <td style="padding: 4px; text-align:center;">
-                          <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
-                            <button class="btn-edit" onclick="startEditCompanyContact(${s.id})" title="Bearbeiten">✏️</button>
-                            <button class="btn-subtask-del" onclick="deleteCompanyContact(${s.id})" title="Löschen">✕</button>
-                          </div>
-                        </td>
-                      </tr>
-                    `;
-                  }).join('')}
-                </tbody>
-              </table>
-            ` : '<div style="color: #888; font-size: 0.85rem; margin-bottom: 8px;">Noch keine Ansprechpartner eingetragen.</div>'}
-
-            <button type="button" class="btn-add-subtask" onclick="addCompanyContact(${c.id})">+ Ansprechpartner hinzufügen</button>
           </td>
         </tr>
       `;
@@ -2535,6 +3687,45 @@ function renderCompanyList() {
   });
 
   tbody.innerHTML = html;
+}
+
+async function deleteCompany(companyId) {
+  // Sicherheitsabfrage, um versehentliches Löschen zu verhindern
+  const confirmDelete = confirm('Möchtest du diese Firma wirklich löschen? Alle verknüpften Ansprechpartner werden ebenfalls entfernt.');
+  
+  if (!confirmDelete) return;
+
+  if (typeof supabaseClient !== 'undefined') {
+    // 1. Zuerst die zugehörigen Ansprechpartner löschen (falls Cascade-Delete in Supabase nicht aktiv ist)
+    const { error: contactsError } = await supabaseClient
+      .from('company_contacts')
+      .delete()
+      .eq('company_id', companyId);
+
+    if (contactsError) {
+      console.error('Fehler beim Löschen der Ansprechpartner:', contactsError.message);
+    }
+
+    // 2. Firma selbst löschen
+    const { error: companyError } = await supabaseClient
+      .from('companies')
+      .delete()
+      .eq('id', companyId);
+
+    if (companyError) {
+      alert('Fehler beim Löschen der Firma: ' + companyError.message);
+      return;
+    }
+  }
+
+  // Liste im UI aktualisieren
+  if (typeof loadCompanies === 'function') {
+    await loadCompanies();
+  } else {
+    // Falls 'companies' lokal gefiltert wird:
+    companies = companies.filter(c => String(c.id) !== String(companyId));
+    renderCompanyList();
+  }
 }
 
 function escapeHtml(str) {
