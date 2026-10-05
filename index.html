@@ -1247,105 +1247,111 @@ tr.new-task-highlight td:last-child {
     </div>
 
     <!-- Formular -->
-<form onsubmit="saveNewCompany(event)">
-  <!-- Versteckte ID für Bearbeiten-Modus -->
-  <input type="hidden" id="modal-company-id">
+    <form onsubmit="saveNewCompany(event)">
+      <!-- Versteckte ID für Bearbeiten-Modus -->
+      <input type="hidden" id="modal-company-id">
 
-  <!-- Firmendaten -->
-  <div style="margin-bottom: 12px;">
-    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">Firmenname *</label>
-    <input type="text" id="modal-company-name" required placeholder="z. B. Mustermann GmbH" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
-  </div>
+      <!-- Firmendaten -->
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">Firmenname *</label>
+        <input type="text" id="modal-company-name" required placeholder="z. B. Mustermann GmbH" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+      </div>
 
-  <div style="display: flex; gap: 12px; margin-bottom: 12px;">
-    <div style="flex: 1;">
-      <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">Kunden-Nr.</label>
-      <input type="text" id="modal-company-kdnr" placeholder="z. B. 12345" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+      <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+        <div style="flex: 1;">
+          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">Kunden-Nr.</label>
+          <input type="text" id="modal-company-kdnr" placeholder="z. B. 12345" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+        </div>
+        <div style="flex: 1;">
+          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">Zentrale Telefon-Nr.</label>
+          <input type="text" id="modal-company-phone" placeholder="z. B. 07131 123456" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+        </div>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">Zentrale E-Mail</label>
+        <input type="email" id="modal-company-email" placeholder="z. B. info@musterfirma.de" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+      </div>
+
+      <!-- Dynamic Ansprechpartner Container -->
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">
+            Ansprechpartner
+          </span>
+          <button type="button" onclick="addContactRowToModal()" style="background: #ffffff; border: 1px solid #cbd5e1; color: #3f7a44; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+            + Ansprechpartner hinzufügen
+          </button>
+        </div>
+
+        <!-- Hier werden die Ansprechpartner-Zeilen dynamisch eingefügt -->
+        <div id="modal-contacts-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" onclick="closeAddCompanyModal()" style="padding: 8px 16px; border: 1px solid #cbd5e1; background: #ffffff; border-radius: 6px; cursor: pointer; color: #475569;">Abbrechen</button>
+        <button type="submit" style="padding: 8px 18px; border: none; background: #3f7a44; color: white; border-radius: 6px; font-weight: 600; cursor: pointer;">Firma speichern</button>
+      </div>
+    </form>
+  </div> <!-- 👈 ERGÄNZT: Schließt den inneren Box-Container von modal-add-company -->
+</div> <!-- 👈 ERGÄNZT: Schließt modal-add-company -->
+
+<!-- ========================================== -->
+<!-- MODAL: Kontakt (Anlegen / Bearbeiten)      -->
+<!-- ========================================== -->
+<div id="modal-add-contact" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+  <div style="background: #ffffff; width: 100%; max-width: 420px; border-radius: 8px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); font-family: inherit;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h3 id="modal-contact-title" style="margin: 0; font-size: 1.1rem; color: #1a202c;">Kontakt bearbeiten</h3>
+      <button type="button" onclick="closeAddContactModal()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #718096;">✕</button>
     </div>
-    <div style="flex: 1;">
-      <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">Zentrale Telefon-Nr.</label>
-      <input type="text" id="modal-company-phone" placeholder="z. B. 07131 123456" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+
+    <input type="hidden" id="modal-contact-company-id">
+    <input type="hidden" id="modal-contact-id">
+
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div>
+        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #4a5568; margin-bottom: 4px;">Name / Ansprechpartner</label>
+        <input type="text" id="modal-contact-name" placeholder="z. B. Max Mustermann" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box;">
+      </div>
+
+      <div>
+        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #4a5568; margin-bottom: 4px;">Telefon</label>
+        <input type="text" id="modal-contact-tele" placeholder="z. B. 07131 123456" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box;">
+      </div>
+
+      <div>
+        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #4a5568; margin-bottom: 4px;">E-Mail</label>
+        <input type="email" id="modal-contact-email" placeholder="z. B. m.mustermann@firma.de" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box;">
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+      <button type="button" onclick="closeAddContactModal()" style="background: #e2e8f0; color: #4a5568; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600;">Abbrechen</button>
+      <button type="button" onclick="saveModalContact()" style="background: #2b6cb0; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Speichern</button>
     </div>
   </div>
+</div>
 
-  <div style="margin-bottom: 16px;">
-    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 4px;">Zentrale E-Mail</label>
-    <input type="email" id="modal-company-email" placeholder="z. B. info@musterfirma.de" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
-  </div>
-
-  <!-- Dynamic Ansprechpartner Container -->
-  <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-bottom: 20px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-      <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">
-        Ansprechpartner
-      </span>
-      <button type="button" onclick="addContactRowToModal()" style="background: #ffffff; border: 1px solid #cbd5e1; color: #3f7a44; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
-        + Ansprechpartner hinzufügen
+<!-- ========================================== -->
+<!-- MODAL: Gewerk-Auswahl                      -->
+<!-- ========================================== -->
+<div id="gewerk-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 999999; justify-content: center; align-items: center;">
+  <div style="background: white; padding: 25px; border-radius: 12px; text-align: center; max-width: 350px; width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+    <h2 style="margin-top: 0; font-size: 1.3rem;">Willkommen! 👋</h2>
+    <p style="color: #555; margin-bottom: 20px;">Bitte wähle dein Gewerk aus, um deine Aufgaben zu sehen:</p>
+    
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <button type="button" onclick="selectGewerk('Zimmerer')" style="padding: 12px; font-size: 1.05rem; border: 2px solid #4e342e; background: #efebe9; border-radius: 8px; cursor: pointer; font-weight: bold; color: #4e342e;">
+        🪓 Zimmerer
+      </button>
+      <button type="button" onclick="selectGewerk('Schreiner')" style="padding: 12px; font-size: 1.05rem; border: 2px solid #0d47a1; background: #e3f2fd; border-radius: 8px; cursor: pointer; font-weight: bold; color: #0d47a1;">
+        🪚 Schreiner
       </button>
     </div>
-
-    <!-- Hier werden die Ansprechpartner-Zeilen dynamisch eingefügt -->
-    <div id="modal-contacts-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
   </div>
-
-  <!-- Footer Buttons -->
-  <div style="display: flex; justify-content: flex-end; gap: 10px;">
-    <button type="button" onclick="closeAddCompanyModal()" style="padding: 8px 16px; border: 1px solid #cbd5e1; background: #ffffff; border-radius: 6px; cursor: pointer; color: #475569;">Abbrechen</button>
-    <button type="submit" style="padding: 8px 18px; border: none; background: #3f7a44; color: white; border-radius: 6px; font-weight: 600; cursor: pointer;">Firma speichern</button>
-  </div>
-</form>
-
-  <!-- Modal für Kontakt (Anlegen / Bearbeiten) -->
-  <div id="modal-add-contact" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
-    <div style="background: #ffffff; width: 100%; max-width: 420px; border-radius: 8px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); font-family: inherit;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h3 id="modal-contact-title" style="margin: 0; font-size: 1.1rem; color: #1a202c;">Kontakt bearbeiten</h3>
-        <button type="button" onclick="closeAddContactModal()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #718096;">✕</button>
-      </div>
-
-      <input type="hidden" id="modal-contact-company-id">
-      <input type="hidden" id="modal-contact-id">
-
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-        <div>
-          <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #4a5568; margin-bottom: 4px;">Name / Ansprechpartner</label>
-          <input type="text" id="modal-contact-name" placeholder="z. B. Max Mustermann" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box;">
-        </div>
-
-        <div>
-          <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #4a5568; margin-bottom: 4px;">Telefon</label>
-          <input type="text" id="modal-contact-tele" placeholder="z. B. 07131 123456" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box;">
-        </div>
-
-        <div>
-          <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #4a5568; margin-bottom: 4px;">E-Mail</label>
-          <input type="email" id="modal-contact-email" placeholder="z. B. m.mustermann@firma.de" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box;">
-        </div>
-      </div>
-
-      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
-        <button type="button" onclick="closeAddContactModal()" style="background: #e2e8f0; color: #4a5568; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600;">Abbrechen</button>
-        <button type="button" onclick="saveModalContact()" style="background: #2b6cb0; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Speichern</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: Gewerk-Auswahl beim ersten Start -->
-  <div id="gewerk-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center;">
-    <div style="background: white; padding: 25px; border-radius: 12px; text-align: center; max-width: 350px; width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-      <h2 style="margin-top: 0; font-size: 1.3rem;">Willkommen! 👋</h2>
-      <p style="color: #555; margin-bottom: 20px;">Bitte wähle dein Gewerk aus, um deine Aufgaben zu sehen:</p>
-      
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-        <button type="button" onclick="selectGewerk('Zimmerer')" style="padding: 12px; font-size: 1.05rem; border: 2px solid #4e342e; background: #efebe9; border-radius: 8px; cursor: pointer; font-weight: bold; color: #4e342e;">
-          🪓 Zimmerer
-        </button>
-        <button type="button" onclick="selectGewerk('Schreiner')" style="padding: 12px; font-size: 1.05rem; border: 2px solid #0d47a1; background: #e3f2fd; border-radius: 8px; cursor: pointer; font-weight: bold; color: #0d47a1;">
-          🪚 Schreiner
-        </button>
-      </div>
-    </div>
-  </div>
+</div>
 
 <script>
   const SUPABASE_URL = 'https://aqownulwmwdtrgzmsgqn.supabase.co';
@@ -2498,34 +2504,41 @@ function initGewerk() {
   }
 }
 
-// Gewerk auswählen & im LocalStorage speichern
-function selectGewerk(gewerk) {
+// Funktionen explizit global verfügbar machen
+window.openGewerkModal = function() {
+  console.log("openGewerkModal aufgerufen!");
+  const modal = document.getElementById('gewerk-modal');
+  
+  if (!modal) {
+    console.error("Fehler: Element mit ID 'gewerk-modal' nicht gefunden!");
+    return;
+  }
+
+  // Korrekte Syntax für JS:
+  modal.style.display = 'flex';
+};
+
+window.selectGewerk = function(gewerk) {
+  console.log("Gewerk gewählt:", gewerk);
   currentGewerk = gewerk;
   localStorage.setItem('selectedGewerk', gewerk);
   
-  // Modal schließen
-  document.getElementById('gewerk-modal').style.display = 'none';
+  const modal = document.getElementById('gewerk-modal');
+  if (modal) modal.style.display = 'none';
   
   updateGewerkUI();
-}
+};
 
-// Öffnet das Modal manuell über den Wechsel-Button
-function openGewerkModal() {
-  document.getElementById('gewerk-modal').style.display = 'flex';
-}
-
-// Aktualisiert Anzeige, Aufgaben-Liste, Fortschrittsbalken und Alerts
-function updateGewerkUI() {
+window.updateGewerkUI = function() {
   const label = document.getElementById('active-gewerk-label');
   if (label) {
     label.innerHTML = currentGewerk === 'Schreiner' ? '🪚 Schreiner' : '🪓 Zimmerer';
   }
   
-  // Rendern, Fortschrittsbalken und Alerts neu berechnen
   if (typeof render === 'function') render();
-  if (typeof updateProgressBar === 'function') updateProgressBar(); // <--- DIESE ZEILE ERGÄNZEN!
+  if (typeof updateProgressBar === 'function') updateProgressBar();
   if (typeof checkAlerts === 'function') checkAlerts();
-}
+};
 
 let editingPhoneId = null; // Speichert, welche Zeile gerade bearbeitet wird
 
