@@ -826,6 +826,84 @@ table {
   }
 }
 
+/* =========================================================
+   NUR MOBIL: REIN FÜR DIE FIRMENLISTE (LÄSST TELEFONLISTE UND TABLET UNBERÜHRT)
+   ========================================================= */
+@media (max-width: 650px) {
+  /* Tabellenkopf ausblenden */
+  #firmenliste-table thead {
+    display: none !important;
+  }
+
+  #firmenliste-table,
+  #firmenliste-tbody {
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Jede Firmenzeile wird zur Karte */
+  #firmenliste-tbody tr {
+    display: flex !important;
+    flex-direction: column !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    margin-bottom: 12px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04) !important;
+    position: relative !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Alle Tabellenzellen in der Firmenliste zurücksetzen */
+  #firmenliste-tbody td {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 2px 0 !important;
+    border: none !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 1. Spalte: Firmenname sauber einrücken, damit Platz für die Buttons ist */
+  #firmenliste-tbody td:nth-child(1) {
+    padding-right: 70px !important;
+  }
+
+  #firmenliste-tbody td:nth-child(1) div {
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    color: #1a202c !important;
+    word-break: break-word !important;
+  }
+
+  /* 2. Spalte: Kundennummer */
+  #firmenliste-tbody td:nth-child(2) {
+    font-size: 0.85rem !important;
+    color: #718096 !important;
+    margin-bottom: 6px !important;
+  }
+
+  /* 3. Spalte: Zentrale & Ansprechpartner */
+  #firmenliste-tbody td:nth-child(3) {
+    margin-top: 4px !important;
+  }
+
+  /* 4. Spalte: Buttons oben rechts in die Ecke heften */
+  #firmenliste-tbody td:nth-child(4) {
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    padding: 0 !important;
+  }
+
+  #firmenliste-tbody td:nth-child(4) > div {
+    justify-content: flex-end !important;
+  }
+}
+
 /* Animation & Optik für neu erstellte Aufgaben */
 .new-task-highlight {
   border: 2px solid #22c55e !important; /* Grüner Rahmen */
@@ -892,6 +970,250 @@ tr.new-task-highlight td:last-child {
   overflow-y: auto; /* Aktiviert das Scrollen im Modal */
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
+
+/* =========================================================
+   EINHEITLICHER HEADER UND NAVIGATION AUF DEM HANDY
+   ========================================================= */
+@media (max-width: 650px) {
+
+  /* 1. Die 4 Haupt-Tabs als festes 2x2-Raster */
+  .tab-navigation {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important; /* Exakt 2 gleich breite Spalten */
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Alle Tab-Buttons perfekt gleich groß und zentriert */
+  .tab-navigation .tab-btn {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 10px 6px !important;
+    font-size: 0.9rem !important;
+    text-align: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 2. Aktions-Buttons (+ Firma / + Kontakt / + Aufgabe) vollflächig */
+  #tab-firmenliste button[onclick*="openAdd"],
+  #tab-telefonliste button[onclick*="openAdd"],
+  #tab-todos button[onclick*="openAdd"],
+  .btn-add-action {
+    width: 100% !important;
+    display: block !important;
+    margin: 8px 0 12px 0 !important;
+    padding: 10px !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 3. Suchfelder immer über die volle Breite */
+  #search-company,
+  #search-phone,
+  #search-todo {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* =========================================================
+   MOBIL-OPTIMIERUNG: LEIHLISTE FORMULAR
+   ========================================================= */
+@media (max-width: 650px) {
+
+  /* Container flexibel untereinander ausrichten */
+  #tab-leihliste form,
+  #tab-leihliste .card,
+  #tab-leihliste > div {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Eingabefelder auf volle Breite */
+  #tab-leihliste input,
+  #tab-leihliste select,
+  #tab-leihliste textarea {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* ALLE Buttons im Leihliste-Tab auf volle Breite strecken */
+  #tab-leihliste button {
+    width: 100% !important;
+    display: block !important;
+    margin-top: 4px !important;
+    padding: 10px !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* =========================================================
+   VEREINHEITLICHUNG: TELEFONLISTE & FIRMENLISTE HEADER
+   ========================================================= */
+@media (max-width: 650px) {
+
+  /* 1. Container bei beiden Tabs identisch untereinander stapeln */
+  #tab-telefonliste > div:has(> input),
+  #tab-telefonliste .search-container,
+  #tab-firmen .controls-bar {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin-bottom: 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 2. Die Hinzufügen-Buttons bei allen beiden Tabs 100% identisch stylen */
+  #tab-telefonliste button,
+  #tab-firmen .btn-add-company {
+    order: 1 !important;
+    display: flex !important;
+    width: 100% !important;
+    min-height: 42px !important; /* Feste Höhe für identisches Aussehen */
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 10px 16px !important;
+    margin: 0 !important;
+    border-radius: 8px !important;
+    font-size: 0.95rem !important;
+    font-weight: bold !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+  }
+
+  /* 3. Beide Suchfelder 100% identisch stylen */
+  #tab-telefonliste input[type="text"],
+  #tab-firmen #search-company {
+    order: 2 !important;
+    width: 100% !important;
+    height: 42px !important; /* Exakt gleiche Höhe wie der Button */
+    padding: 8px 12px !important;
+    margin: 0 !important;
+    border-radius: 8px !important;
+    font-size: 0.95rem !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* =========================================================
+   ZENTRALE FARBE NUR FÜR HAUPT-BUTTONS (Z.B. + FIRMA HINZUFÜGEN)
+   ========================================================= */
+
+/* 1. Haupt-Buttons grün einfärben (keine Tabellen-Icons!) */
+.tab-navigation .tab-btn.active,
+#tab-todos > button,
+#tab-todos .btn-add-action,
+#tab-leihliste button[type="submit"],
+#tab-telefonliste > button,
+#tab-telefonliste .btn-add-action,
+#tab-firmen .btn-add-company {
+  background-color: #3f7a44 !important; /* Tannengrün */
+  color: #ffffff !important;
+  border: none !important;
+}
+
+/* 2. Expliziter Reset für Tabellen-Icons (Stift, Müll, Stern) */
+td .btn-edit,
+td .btn-delete,
+td .btn-star,
+td button {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 2px 4px !important;
+  width: auto !important;
+  min-height: auto !important;
+  box-shadow: none !important;
+}
+
+/* =========================================================
+   DESKTOP UNIFORM LEISTE (Aufgaben, Firmen, Telefon)
+   ========================================================= */
+
+/* 1. Einheitslook für alle Suchfelder (leicht abgerundet, gleiche Höhe) */
+#search-todo,
+#search-company,
+#search-phone,
+.search-input {
+  border-radius: 8px !important;
+  height: 38px !important;
+  padding: 6px 12px !important;
+  border: 1px solid var(--border) !important;
+  font-size: 0.9rem !important;
+  outline: none !important;
+}
+
+/* 2. Firmenliste Header: Suche links, Button rechts ausrichten */
+#tab-firmen .controls-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  margin-bottom: 16px !important;
+}
+
+#tab-firmen #search-company {
+  order: 1 !important; /* Suche nach links */
+  width: 280px !important;
+}
+
+#tab-firmen .btn-add-company {
+  order: 2 !important; /* Button nach rechts */
+  height: 38px !important;
+  border-radius: 8px !important;
+  padding: 0 16px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+/* 3. Telefonliste Header (zur Sicherheit für identische Maße) */
+#tab-telefonliste > div:has(> input) {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  margin-bottom: 16px !important;
+}
+
+#tab-telefonliste input[type="text"] {
+  width: 280px !important;
+  height: 38px !important;
+  border-radius: 8px !important;
+}
+
+#tab-telefonliste button {
+  height: 38px !important;
+  border-radius: 8px !important;
+  padding: 0 16px !important;
+}
+
+/* 4. Aufgabenliste Header: Button oben rechts oder in einer Linie */
+#tab-todos .controls-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin-bottom: 16px !important;
+}
+
+#tab-todos .btn-add-action,
+#tab-todos button[onclick*="openAdd"] {
+  height: 38px !important;
+  border-radius: 8px !important;
+  padding: 0 16px !important;
+}
+
 
 </style>
 </head>
